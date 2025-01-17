@@ -378,61 +378,76 @@ const App = () => {
     };
 
     const renderFinished = () => {
+        // Content Review finish screen - no scoring
         if (gameState === 'review') {
-            const randomMessage = [
+            const messages = [
                 "Great job reviewing the content!",
                 "Keep reading and learning!",
                 "You're becoming a better reader every day!"
-            ][Math.floor(Math.random() * 3)];
+            ];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
             
             return (
                 <>
                     <h2 className="title">{randomMessage}</h2>
                     <div className="character-select">
-                        <button className="button" onClick={() => {
-                            resetGameState();
-                            setGameState('mode');
-                        }}>
+                        <button 
+                            className="button" 
+                            onClick={() => {
+                                resetGameState();
+                                setGameState('mode');
+                            }}
+                        >
                             Try Another Challenge
                         </button>
-                        <button className="button" onClick={() => {
-                            resetGameState();
-                            setGameState('title');
-                        }}>
-                            Back to Start
-                        </button>
-                    </div>
-                </>
-            );
-        } else {
-            const percentage = (score / questionCount) * 100;
-            let message = '';
-            if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
-            else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
-            else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
-            else message = "GOOD TRY! Every question makes you stronger!";
-
-            return (
-                <>
-                    <h2 className="title">{message}</h2>
-                    <p className="subtitle">Final Score: {score} / {questionCount}</p>
-                    <div className="character-select">
-                        <button className="button" onClick={() => {
-                            resetGameState();
-                            setGameState('mode');
-                        }}>
-                            Try Another Challenge
-                        </button>
-                        <button className="button" onClick={() => {
-                            resetGameState();
-                            setGameState('title');
-                        }}>
+                        <button 
+                            className="button" 
+                            onClick={() => {
+                                resetGameState();
+                                setGameState('title');
+                            }}
+                        >
                             Back to Start
                         </button>
                     </div>
                 </>
             );
         }
+        
+        // Quiz finish screen with scoring
+        const percentage = (score / questionCount) * 100;
+        let message = '';
+        if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
+        else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
+        else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
+        else message = "GOOD TRY! Every question makes you stronger!";
+
+        return (
+            <>
+                <h2 className="title">{message}</h2>
+                <p className="subtitle">Final Score: {score} / {questionCount}</p>
+                <div className="character-select">
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('mode');
+                        }}
+                    >
+                        Try Another Challenge
+                    </button>
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('title');
+                        }}
+                    >
+                        Back to Start
+                    </button>
+                </div>
+            </>
+        );
     };
 
     const renderContent = () => {
