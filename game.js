@@ -18,14 +18,12 @@ function App() {
     const [showFeedback, setShowFeedback] = React.useState(false);
     const [lastAnswerCorrect, setLastAnswerCorrect] = React.useState(false);
 
-    // Question Loading Effect
     React.useEffect(() => {
         if (gameState === 'playing' || gameState === 'review') {
             loadQuestions();
         }
     }, [gameState, questionCount]);
 
-    // Timer Effect
     React.useEffect(() => {
         let timer;
         if (gameState === 'playing' && timeLeft > 0 && !answered) {
@@ -53,25 +51,41 @@ function App() {
                 skipEmptyLines: true
             });
             
-            const iwbQuestions = parsedData.data.filter(q => q.qtype === 'iwb');
-            const shuffledQuestions = iwbQuestions
+            // Filter based on game mode
+            const filteredQuestions = parsedData.data.filter(q => 
+                gameState === 'playing' ? q.qtype === 'iwb' : q.qtype === 'con'
+            );
+
+            const shuffledQuestions = filteredQuestions
                 .sort(() => Math.random() - 0.5)
-                .slice(0, questionCount);
+                .slice(0, gameState === 'playing' ? questionCount : 20);
             
-            const questionsWithOptions = shuffledQuestions.map(question => {
-                const otherBooks = new Set(iwbQuestions.map(q => q.book));
-                otherBooks.delete(question.book);
-                const options = [...Array.from(otherBooks)]
-                    .sort(() => Math.random() - 0.5)
-                    .slice(0, 3);
-                
-                return {
-                    ...question,
-                    options: [...options, question.book].sort(() => Math.random() - 0.5)
-                };
-            });
+            if (gameState === 'playing') {
+                // Pre-calculate answer options for each question
+                const questionsWithOptions = shuffledQuestions.map(question => {
+                    const otherBooks = new Set(filteredQuestions.map(q => q.book));
+                    otherBooks.delete(question.book);
+                    const optionsArray = Array.from(otherBooks);
+                    const randomOptions = [];
+                    
+                    // Get 3 unique random options
+                    while (randomOptions.length < 3 && optionsArray.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * optionsArray.length);
+                        randomOptions.push(optionsArray.splice(randomIndex, 1)[0]);
+                    }
+                    
+                    // Add correct answer and shuffle
+                    return {
+                        ...question,
+                        question: question.question.replace('iwb', 'In Which Book'),
+                        options: [...randomOptions, question.book].sort(() => Math.random() - 0.5)
+                    };
+                });
+                setQuestions(questionsWithOptions);
+            } else {
+                setQuestions(shuffledQuestions);
+            }
             
-            setQuestions(questionsWithOptions);
             setLoading(false);
         } catch (error) {
             console.error('Error loading questions:', error);
@@ -173,7 +187,7 @@ function App() {
             <h2 className="subtitle">CHOOSE YOUR CHALLENGE</h2>
             
             <div className="retro-window">
-                <h3 className="subtitle">IWB Quiz Challenge</h3>
+                <h3 className="subtitle">In Which Book Challenge</h3>
                 <div className="character-select">
                     <button 
                         className="button"
@@ -208,12 +222,14 @@ function App() {
             <div className="retro-window">
                 <h3 className="subtitle">Content Review</h3>
                 <p className="review-text">Practice with questions at your own pace.</p>
-                <button 
-                    className="button"
-                    onClick={() => setGameState('review')}
-                >
-                    Start Review
-                </button>
+                <div className="center-button">
+                    <button 
+                        className="button"
+                        onClick={() => setGameState('review')}
+                    >
+                        Start Review
+                    </button>
+                </div>
             </div>
         </>
     );
@@ -231,6 +247,23 @@ function App() {
                 <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
                     <div>Score: {score}</div>
                     <div>Time: {timeLeft}s</div>
+                </div>
+                
+                <div className="progress-tracker">
+                    {Array.from({ length: questions.length }, (_, i) => (
+                        <div 
+                            key={i} 
+                            className={`progress-dot ${
+                                i < currentQuestionIndex 
+                                    ? answersHistory[i] 
+                                        ? 'correct' 
+                                        : 'incorrect'
+                                    : i === currentQuestionIndex 
+                                        ? 'current' 
+                                        : ''
+                            }`}
+                        />
+                    ))}
                 </div>
 
                 <div className="timer-bar">
@@ -263,8 +296,10 @@ function App() {
                 </div>
 
                 {showFeedback && (
-                    <div className="answer-feedback">
-                        {lastAnswerCorrect ? '✓' : '×'}
+                    <div className="feedback-overlay">
+                        <div className="feedback-content">
+                            {lastAnswerCorrect ? '✓' : '×'}
+                        </div>
                     </div>
                 )}
             </div>
@@ -292,30 +327,36 @@ function App() {
                 <p>{currentQuestion.question}</p>
                 
                 {!answered ? (
-                    <button 
-                        className="button"
-                        onClick={() => setAnswered(true)}
-                    >
-                        Reveal Answer
-                    </button>
+                    <div className="center-button">
+                        <button 
+                            className="button"
+                            onClick={() => setAnswered(true)}
+                        >
+                            Reveal Answer
+                        </button>
+                    </div>
                 ) : (
                     <>
                         <div className="answer-reveal">
-                            {currentQuestion.book}
+                            <div className="answer-content">
+                                {currentQuestion.book}
+                            </div>
                         </div>
-                        <button 
-                            className="button"
-                            onClick={() => {
-                                if (currentQuestionIndex < questions.length - 1) {
-                                    setCurrentQuestionIndex(i => i + 1);
-                                    setAnswered(false);
-                                } else {
-                                    setGameState('finished');
-                                }
-                            }}
-                        >
-                            Next Question
-                        </button>
+                        <div className="center-button">
+                            <button 
+                                className="button"
+                                onClick={() => {
+                                    if (currentQuestionIndex < questions.length - 1) {
+                                        setCurrentQuestionIndex(i => i + 1);
+                                        setAnswered(false);
+                                    } else {
+                                        setGameState('finished');
+                                    }
+                                }}
+                            >
+                                Next Question
+                            </button>
+                        </div>
                     </>
                 )}
             </div>
