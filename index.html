@@ -79,23 +79,6 @@
             text-shadow: none;
         }
 
-        .button.correct {
-            background: #33ff33;
-            color: black;
-            text-shadow: none;
-        }
-        
-        .button.wrong {
-            background: #ff3333;
-            color: black;
-            text-shadow: none;
-        }
-        
-        .button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
         .team-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -139,20 +122,6 @@
             box-shadow: 0 0 10px #33ff33;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            border: 2px solid #33ff33;
-            margin: 20px 0;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #33ff33;
-            transition: width 0.3s ease;
-        }
-
         @media (max-width: 768px) {
             .title {
                 font-size: 1.5rem;
@@ -183,102 +152,40 @@
             const [character, setCharacter] = React.useState('');
             const [questions, setQuestions] = React.useState([]);
             const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
-            const [score, setScore] = React.useState(0);
-            const [timeLeft, setTimeLeft] = React.useState(30);
             const [loading, setLoading] = React.useState(false);
-            const [answered, setAnswered] = React.useState(false);
-            const [questionCount, setQuestionCount] = React.useState(20);
-            const [gameOptions, setGameOptions] = React.useState(false);
 
-            React.useEffect(() => {
-                if (gameState === 'playing' && !questions.length) {
-                    loadQuestions();
-                }
-            }, [gameState]);
-
-            React.useEffect(() => {
-                let timer;
-                if (gameState === 'playing' && timeLeft > 0 && !answered) {
-                    timer = setInterval(() => {
-                        setTimeLeft(prev => {
-                            if (prev <= 1) {
-                                clearInterval(timer);
-                                handleTimeUp();
-                                return 0;
-                            }
-                            return prev - 1;
-                        });
-                    }, 1000);
-                }
-                return () => clearInterval(timer);
-            }, [gameState, timeLeft, answered]);
-
+            // Simple function to load questions when needed
             const loadQuestions = async () => {
                 try {
+                    console.log('Starting to load questions...');
                     setLoading(true);
                     const response = await fetch('OBOBquestions.csv');
                     const text = await response.text();
+                    console.log('CSV loaded, first 100 chars:', text.substring(0, 100));
+                    
                     const results = Papa.parse(text, {
                         header: true,
                         skipEmptyLines: true
                     });
                     
-                    if (results.data && results.data.length > 0) {
-                        const shuffled = [...results.data]
-                            .sort(() => Math.random() - 0.5)
-                            .slice(0, questionCount);
-                        setQuestions(shuffled);
-                        setLoading(false);
-                    }
+                    console.log('Questions parsed, count:', results.data.length);
+                    
+                    // Just take 5 questions for testing
+                    const shuffled = [...results.data]
+                        .sort(() => Math.random() - 0.5)
+                        .slice(0, 5);
+                    
+                    setQuestions(shuffled);
+                    setLoading(false);
                 } catch (error) {
                     console.error('Error loading questions:', error);
                     setLoading(false);
                 }
             };
 
-            const handleAnswer = (selectedBook) => {
-                setAnswered(true);
-                const correct = selectedBook === questions[currentQuestionIndex].book;
-                if (correct) setScore(s => s + 1);
-                
-                setTimeout(() => {
-                    if (currentQuestionIndex < questionCount - 1) {
-                        setCurrentQuestionIndex(i => i + 1);
-                        setAnswered(false);
-                        setTimeLeft(30);
-                    } else {
-                        setGameState('finished');
-                    }
-                }, 2000);
-            };
-
-            const handleTimeUp = () => {
-                if (currentQuestionIndex < questionCount - 1) {
-                    setTimeout(() => {
-                        setCurrentQuestionIndex(i => i + 1);
-                        setAnswered(false);
-                        setTimeLeft(30);
-                    }, 1000);
-                } else {
-                    setGameState('finished');
-                }
-            };
-
-            const startNewGame = () => {
-                setScore(0);
-                setCurrentQuestionIndex(0);
-                setQuestions([]);
-                setTimeLeft(30);
-                setAnswered(false);
-                setGameState('title');
-                setTeam('');
-                setCharacter('');
-            };
-
             const renderTitle = () => (
                 <>
                     <h1 className="title">OREGON BATTLE OF THE BOOKS</h1>
-                    <p className="subtitle">A text adventure quiz game</p>
                     <button className="button" onClick={() => setGameState('team')}>
                         START YOUR QUEST
                     </button>
@@ -317,80 +224,50 @@
                         </>
                     )}
                     {character && (
-                        <button className="button" onClick={() => setGameState('play')}>
-                            CONTINUE
+                        <button 
+                            className="button" 
+                            onClick={() => {
+                                loadQuestions();  // Load questions when starting game
+                                setGameState('playing');
+                            }}
+                        >
+                            BEGIN QUEST
                         </button>
                     )}
                 </>
             );
 
-            const renderGameOptions = () => (
-                <>
-                    <h2 className="subtitle">CHOOSE YOUR CHALLENGE</h2>
-                    <div className="character-select">
-                        <button 
-                            className="button"
-                            onClick={() => {
-                                setQuestionCount(20);
-                                setGameState('playing');
-                            }}
-                        >
-                            20 QUESTIONS
-                        </button>
-                        <button 
-                            className="button"
-                            onClick={() => {
-                                setQuestionCount(50);
-                                setGameState('playing');
-                            }}
-                        >
-                            50 QUESTIONS
-                        </button>
-                    </div>
-                </>
-            );
+            const renderQuestion = () => {
+                if (loading) {
+                    return <div className="subtitle">Loading your quest...</div>;
+                }
 
-            const renderPlaying = () => {
-                if (loading || !questions.length) {
-                    return <div className="subtitle">Loading questions...</div>;
+                if (!questions.length) {
+                    return <div className="subtitle">No questions available</div>;
                 }
 
                 const currentQuestion = questions[currentQuestionIndex];
-                const progress = ((currentQuestionIndex + 1) / questionCount) * 100;
 
                 return (
                     <div className="retro-window">
-                        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '20px'}}>
-                            <div>Score: {score}</div>
-                            <div>Time: {timeLeft}s</div>
-                        </div>
-                        
-                        <div className="progress-bar">
-                            <div 
-                                className="progress-fill"
-                                style={{width: `${progress}%`}}
-                            />
-                        </div>
-
-                        <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questionCount}</h3>
-                        <p style={{marginBottom: '20px'}}>{currentQuestion.question}</p>
-
+                        <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
+                        <p>{currentQuestion.question}</p>
                         <div className="character-select">
+                            {/* Just show 4 random book options */}
                             {Array.from(new Set(questions.map(q => q.book)))
                                 .sort(() => Math.random() - 0.5)
                                 .slice(0, 4)
                                 .map((book) => (
                                     <button
                                         key={book}
-                                        onClick={() => !answered && handleAnswer(book)}
-                                        className={`button ${
-                                            answered 
-                                                ? book === currentQuestion.book 
-                                                    ? 'correct'
-                                                    : 'wrong'
-                                                : ''
-                                        }`}
-                                        disabled={answered}
+                                        className="button"
+                                        onClick={() => {
+                                            if (currentQuestionIndex < questions.length - 1) {
+                                                setCurrentQuestionIndex(i => i + 1);
+                                            } else {
+                                                setGameState('finished');
+                                            }
+                                        }}
                                     >
                                         {book}
                                     </button>
@@ -400,39 +277,14 @@
                 );
             };
 
-            const renderFinished = () => {
-                const percentage = (score / questionCount) * 100;
-                let message = '';
-                if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
-                else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
-                else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
-                else message = "GOOD TRY! Every question makes you stronger!";
-
-                return (
-                    <>
-                        <h2 className="title">{message}</h2>
-                        <p className="subtitle">Final Score: {score} / {questionCount}</p>
-                        <div className="character-select">
-                            <button className="button" onClick={startNewGame}>
-                                PLAY AGAIN
-                            </button>
-                        </div>
-                    </>
-                );
-            };
-
             const renderContent = () => {
                 switch(gameState) {
                     case 'title':
                         return renderTitle();
                     case 'team':
                         return renderTeamSelect();
-                    case 'play':
-                        return renderGameOptions();
                     case 'playing':
-                        return renderPlaying();
-                    case 'finished':
-                        return renderFinished();
+                        return renderQuestion();
                     default:
                         return renderTitle();
                 }
