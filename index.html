@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oregon Battle of the Books Quiz</title>
-    <!-- React and dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Updated React and dependencies with specific versions and proper loading order -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     
     <style>
         body {
@@ -142,7 +143,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // Quiz questions will be loaded from your CSV
         const READING_QUOTES = [
             '"The more that you read, the more things you will know. The more that you learn, the more places you'll go." - Dr. Seuss',
             '"Reading is to the mind what exercise is to the body." - Joseph Addison',
@@ -170,13 +170,16 @@
             React.useEffect(() => {
                 const loadQuestions = async () => {
                     try {
+                        console.log('Loading questions...');
                         const response = await fetch('OBOBquestions.csv');
                         const csvText = await response.text();
+                        console.log('CSV loaded, parsing...');
                         const results = Papa.parse(csvText, {
                             header: true,
                             skipEmptyLines: true
                         });
                         if (results.data && results.data.length > 0) {
+                            console.log('Questions loaded:', results.data.length);
                             setQuestions(results.data);
                         }
                     } catch (error) {
@@ -408,8 +411,11 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<QuizGame />);
+        // Wait for the DOM to be fully loaded before rendering
+        window.addEventListener('load', () => {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<QuizGame />);
+        });
     </script>
 </body>
 </html>
