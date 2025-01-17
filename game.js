@@ -40,6 +40,24 @@ const App = () => {
         return () => clearInterval(timer);
     }, [gameState, timeLeft, answered]);
 
+    const resetGameState = () => {
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setTimeLeft(30);
+        setAnswered(false);
+        setAnswersHistory([]);
+        setShowFeedback(false);
+        setLastAnswerCorrect(false);
+        setLoading(false);
+    };
+
+    const startNewGame = (count, mode) => {
+        resetGameState();
+        setQuestionCount(count);
+        setGameState(mode);
+    };
+
     const loadQuestions = async () => {
         try {
             setLoading(true);
@@ -200,24 +218,6 @@ const App = () => {
         </>
     );
 
-    const resetGameState = () => {
-        setQuestions([]);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setTimeLeft(30);
-        setAnswered(false);
-        setAnswersHistory([]);
-        setShowFeedback(false);
-        setLastAnswerCorrect(false);
-        setLoading(false);
-    };
-
-    const startNewGame = (count, mode) => {
-        resetGameState();
-        setQuestionCount(count);
-        setGameState(mode);
-    };
-
     const renderGameModeSelect = () => (
         <>
             <h2 className="subtitle">CHOOSE YOUR CHALLENGE</h2>
@@ -339,8 +339,6 @@ const App = () => {
 
         return (
             <div className="retro-window">
-                {renderProgress()}
-
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
