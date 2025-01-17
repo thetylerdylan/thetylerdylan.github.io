@@ -370,13 +370,13 @@
                     const response = await fetch('OBOBquestions.csv');
                     const text = await response.text();
                     
-                    const results = Papa.parse(text, {
+                    const parsedData = Papa.parse(text, {
                         header: true,
                         skipEmptyLines: true
                     });
                     
                     // Filter for 'iwb' questions
-                    const iwbQuestions = results.data.filter(q => q.qtype === 'iwb');
+                    const iwbQuestions = parsedData.data.filter(q => q.qtype === 'iwb');
                     
                     // Sort questions by difficulty (number of times missed)
                     const sortedQuestions = iwbQuestions.sort((a, b) => {
