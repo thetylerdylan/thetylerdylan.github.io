@@ -3,7 +3,9 @@ const TEAM_MEMBERS = {
     'BOBOs': ['Archer', 'Matthew', 'Jordynn', 'Seth', 'Matilda']
 };
 
-function App() {
+// Create the App component
+const App = () => {
+    // Initialize state
     const [gameState, setGameState] = React.useState('title');
     const [team, setTeam] = React.useState('');
     const [character, setCharacter] = React.useState('');
@@ -399,53 +401,49 @@ function App() {
     };
 
     const renderFinished = () => {
-        const messages = {
-            quiz: [
-                { threshold: 90, text: "LEGENDARY! You're a reading warrior!" },
-                { threshold: 70, text: "AWESOME JOB! You're on your way to becoming a master!" },
-                { threshold: 50, text: "WELL DONE! Keep reading and practicing!" },
-                { threshold: 0, text: "GOOD TRY! Every question makes you stronger!" }
-            ],
-            review: [
+        if (gameState === 'review') {
+            const randomMessage = [
                 "Great job reviewing the content!",
                 "Keep reading and learning!",
                 "You're becoming a better reader every day!"
-            ]
-        };
-
-        let content;
-        if (gameState === 'review') {
-            const randomMessage = messages.review[Math.floor(Math.random() * messages.review.length)];
-            content = (
+            ][Math.floor(Math.random() * 3)];
+            
+            return (
                 <>
                     <h2 className="title">{randomMessage}</h2>
-                    <p className="subtitle">You've reviewed all the questions!</p>
+                    <div className="character-select">
+                        <button className="button" onClick={() => setGameState('mode')}>
+                            Try Another Challenge
+                        </button>
+                        <button className="button" onClick={() => setGameState('title')}>
+                            Back to Start
+                        </button>
+                    </div>
                 </>
             );
         } else {
             const percentage = (score / questionCount) * 100;
-            const message = messages.quiz.find(m => percentage >= m.threshold).text;
-            content = (
+            let message = '';
+            if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
+            else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
+            else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
+            else message = "GOOD TRY! Every question makes you stronger!";
+
+            return (
                 <>
                     <h2 className="title">{message}</h2>
                     <p className="subtitle">Final Score: {score} / {questionCount}</p>
+                    <div className="character-select">
+                        <button className="button" onClick={() => setGameState('mode')}>
+                            Try Another Challenge
+                        </button>
+                        <button className="button" onClick={() => setGameState('title')}>
+                            Back to Start
+                        </button>
+                    </div>
                 </>
             );
         }
-
-        return (
-            <>
-                {content}
-                <div className="character-select">
-                    <button className="button" onClick={() => setGameState('mode')}>
-                        Try Another Challenge
-                    </button>
-                    <button className="button" onClick={() => setGameState('title')}>
-                        Back to Start
-                    </button>
-                </div>
-            </>
-        );
     };
 
     const renderContent = () => {
