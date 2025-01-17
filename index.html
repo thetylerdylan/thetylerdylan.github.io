@@ -79,6 +79,23 @@
             text-shadow: none;
         }
 
+        .button.correct {
+            background: #33ff33;
+            color: black;
+            text-shadow: none;
+        }
+        
+        .button.wrong {
+            background: #ff3333;
+            color: black;
+            text-shadow: none;
+        }
+        
+        .button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         .team-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -111,23 +128,6 @@
             justify-content: center;
             gap: 10px;
             margin: 20px 0;
-        }
-        
-        .button.correct {
-            background: #33ff33;
-            color: black;
-            text-shadow: none;
-        }
-        
-        .button.wrong {
-            background: #ff3333;
-            color: black;
-            text-shadow: none;
-        }
-        
-        .button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
         }
 
         .retro-window {
@@ -191,7 +191,7 @@
             const [gameOptions, setGameOptions] = React.useState(false);
 
             React.useEffect(() => {
-                if (gameState === 'play' && !questions.length) {
+                if (gameState === 'playing' && !questions.length) {
                     loadQuestions();
                 }
             }, [gameState]);
@@ -228,11 +228,10 @@
                             .sort(() => Math.random() - 0.5)
                             .slice(0, questionCount);
                         setQuestions(shuffled);
-                        setGameState('playing');
+                        setLoading(false);
                     }
                 } catch (error) {
                     console.error('Error loading questions:', error);
-                } finally {
                     setLoading(false);
                 }
             };
@@ -276,6 +275,55 @@
                 setCharacter('');
             };
 
+            const renderTitle = () => (
+                <>
+                    <h1 className="title">OREGON BATTLE OF THE BOOKS</h1>
+                    <p className="subtitle">A text adventure quiz game</p>
+                    <button className="button" onClick={() => setGameState('team')}>
+                        START YOUR QUEST
+                    </button>
+                </>
+            );
+
+            const renderTeamSelect = () => (
+                <>
+                    <h2 className="subtitle">SELECT YOUR TEAM</h2>
+                    <div className="team-grid">
+                        {Object.keys(TEAM_MEMBERS).map((teamName) => (
+                            <div 
+                                key={teamName}
+                                className={`team-card ${team === teamName ? 'selected' : ''}`}
+                                onClick={() => setTeam(teamName)}
+                            >
+                                <h3>{teamName}</h3>
+                                <p>{TEAM_MEMBERS[teamName].join(', ')}</p>
+                            </div>
+                        ))}
+                    </div>
+                    {team && (
+                        <>
+                            <h3 className="subtitle">SELECT YOUR CHARACTER</h3>
+                            <div className="character-select">
+                                {TEAM_MEMBERS[team].map((memberName) => (
+                                    <button 
+                                        key={memberName}
+                                        className={`button ${character === memberName ? 'selected' : ''}`}
+                                        onClick={() => setCharacter(memberName)}
+                                    >
+                                        {memberName}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    {character && (
+                        <button className="button" onClick={() => setGameState('play')}>
+                            CONTINUE
+                        </button>
+                    )}
+                </>
+            );
+
             const renderGameOptions = () => (
                 <>
                     <h2 className="subtitle">CHOOSE YOUR CHALLENGE</h2>
@@ -284,7 +332,7 @@
                             className="button"
                             onClick={() => {
                                 setQuestionCount(20);
-                                setGameState('play');
+                                setGameState('playing');
                             }}
                         >
                             20 QUESTIONS
@@ -293,7 +341,7 @@
                             className="button"
                             onClick={() => {
                                 setQuestionCount(50);
-                                setGameState('play');
+                                setGameState('playing');
                             }}
                         >
                             50 QUESTIONS
@@ -380,7 +428,7 @@
                     case 'team':
                         return renderTeamSelect();
                     case 'play':
-                        return gameOptions ? renderPlaying() : renderGameOptions();
+                        return renderGameOptions();
                     case 'playing':
                         return renderPlaying();
                     case 'finished':
