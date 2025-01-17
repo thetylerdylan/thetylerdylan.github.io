@@ -330,13 +330,31 @@ function App() {
         );
     };
 
+    const renderProgress = () => (
+        <div className="question-progress">
+            {questions.map((_, index) => (
+                <div
+                    key={index}
+                    className={`progress-segment ${
+                        index < currentQuestionIndex 
+                            ? answersHistory[index] 
+                                ? 'correct' 
+                                : 'incorrect'
+                            : index === currentQuestionIndex 
+                                ? 'current' 
+                                : ''
+                    }`}
+                />
+            ))}
+        </div>
+    );
+
     const renderContentReview = () => {
         if (loading || !questions.length) {
             return <div className="subtitle">Loading questions...</div>;
         }
 
         const currentQuestion = questions[currentQuestionIndex];
-        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
         return (
             <div className="retro-window">
