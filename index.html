@@ -168,17 +168,22 @@
             const [answered, setAnswered] = React.useState(false);
 
             React.useEffect(() => {
-                // Load your CSV data here
-                // For testing, you can use a small sample of questions
-                const sampleQuestions = [
-                    {
-                        question: "Sample question 1?",
-                        book: "Book 1",
-                        author: "Author 1"
-                    },
-                    // Add more sample questions
-                ];
-                setQuestions(sampleQuestions);
+                const loadQuestions = async () => {
+                    try {
+                        const response = await fetch('OBOBquestions.csv');
+                        const csvText = await response.text();
+                        const results = Papa.parse(csvText, {
+                            header: true,
+                            skipEmptyLines: true
+                        });
+                        if (results.data && results.data.length > 0) {
+                            setQuestions(results.data);
+                        }
+                    } catch (error) {
+                        console.error('Error loading questions:', error);
+                    }
+                };
+                loadQuestions();
             }, []);
 
             React.useEffect(() => {
