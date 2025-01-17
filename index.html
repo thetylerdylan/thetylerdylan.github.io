@@ -6,10 +6,10 @@
     <title>Oregon Battle of the Books Quiz</title>
     
     <!-- Updated React and dependencies with specific versions and proper loading order -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script crossorigin src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.3.0/papaparse.min.js"></script>
     
     <style>
         body {
@@ -171,19 +171,27 @@
                 const loadQuestions = async () => {
                     try {
                         console.log('Loading questions...');
-                        const response = await fetch('OBOBquestions.csv');
+                        // Get the current URL path
+                        const basePath = window.location.pathname.replace(/\/[^\/]*$/, '/');
+                        const response = await fetch(basePath + 'OBOBquestions.csv');
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                         const csvText = await response.text();
-                        console.log('CSV loaded, parsing...');
+                        console.log('CSV loaded, first 100 chars:', csvText.substring(0, 100));
                         const results = Papa.parse(csvText, {
                             header: true,
-                            skipEmptyLines: true
+                            skipEmptyLines: true,
+                            complete: function(results) {
+                                console.log('Parsing complete:', results.data.length, 'rows');
+                                setQuestions(results.data);
+                            },
+                            error: function(error) {
+                                console.error('Papa Parse error:', error);
+                            }
                         });
-                        if (results.data && results.data.length > 0) {
-                            console.log('Questions loaded:', results.data.length);
-                            setQuestions(results.data);
-                        }
                     } catch (error) {
-                        console.error('Error loading questions:', error);
+                        console.error('Error loading questions:', error.message);
                     }
                 };
                 loadQuestions();
@@ -413,8 +421,10 @@
 
         // Wait for the DOM to be fully loaded before rendering
         window.addEventListener('load', () => {
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<QuizGame />);
+            ReactDOM.render(
+                <QuizGame />,
+                document.getElementById('root')
+            );
         });
     </script>
 </body>
