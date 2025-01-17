@@ -58,23 +58,22 @@ function App() {
 
             const shuffledQuestions = filteredQuestions
                 .sort(() => Math.random() - 0.5)
-                .slice(0, gameState === 'playing' ? questionCount : 20);
+                .slice(0, questionCount);
             
             if (gameState === 'playing') {
                 // Pre-calculate answer options for each question
                 const questionsWithOptions = shuffledQuestions.map(question => {
-                    const otherBooks = new Set(filteredQuestions.map(q => q.book));
+                    const otherBooks = new Set(parsedData.data.map(q => q.book));
                     otherBooks.delete(question.book);
                     const optionsArray = Array.from(otherBooks);
                     const randomOptions = [];
                     
-                    // Get 3 unique random options
-                    while (randomOptions.length < 3 && optionsArray.length > 0) {
+                    while (randomOptions.length < 3) {
                         const randomIndex = Math.floor(Math.random() * optionsArray.length);
-                        randomOptions.push(optionsArray.splice(randomIndex, 1)[0]);
+                        const option = optionsArray.splice(randomIndex, 1)[0];
+                        randomOptions.push(option);
                     }
                     
-                    // Add correct answer and shuffle
                     return {
                         ...question,
                         question: question.question.replace('iwb', 'In Which Book'),
@@ -130,6 +129,25 @@ function App() {
             setTimeout(nextQuestion, 1000);
         }, 1000);
     };
+
+    const renderProgress = () => (
+        <div className="progress-bar">
+            {Array.from({ length: questions.length }, (_, i) => (
+                <div 
+                    key={i}
+                    className={`progress-segment ${
+                        i < currentQuestionIndex 
+                            ? answersHistory[i] 
+                                ? 'correct' 
+                                : 'incorrect'
+                            : i === currentQuestionIndex 
+                                ? 'current' 
+                                : ''
+                    }`}
+                />
+            ))}
+        </div>
+    );
 
     const renderTitle = () => (
         <>
@@ -222,12 +240,33 @@ function App() {
             <div className="retro-window">
                 <h3 className="subtitle">Content Review</h3>
                 <p className="review-text">Practice with questions at your own pace.</p>
-                <div className="center-button">
+                <div className="character-select">
                     <button 
                         className="button"
-                        onClick={() => setGameState('review')}
+                        onClick={() => {
+                            setQuestionCount(5);
+                            setGameState('review');
+                        }}
                     >
-                        Start Review
+                        5 Questions
+                    </button>
+                    <button 
+                        className="button"
+                        onClick={() => {
+                            setQuestionCount(10);
+                            setGameState('review');
+                        }}
+                    >
+                        10 Questions
+                    </button>
+                    <button 
+                        className="button"
+                        onClick={() => {
+                            setQuestionCount(20);
+                            setGameState('review');
+                        }}
+                    >
+                        20 Questions
                     </button>
                 </div>
             </div>
@@ -249,22 +288,7 @@ function App() {
                     <div>Time: {timeLeft}s</div>
                 </div>
                 
-                <div className="progress-tracker">
-                    {Array.from({ length: questions.length }, (_, i) => (
-                        <div 
-                            key={i} 
-                            className={`progress-dot ${
-                                i < currentQuestionIndex 
-                                    ? answersHistory[i] 
-                                        ? 'correct' 
-                                        : 'incorrect'
-                                    : i === currentQuestionIndex 
-                                        ? 'current' 
-                                        : ''
-                            }`}
-                        />
-                    ))}
-                </div>
+                {renderProgress()}
 
                 <div className="timer-bar">
                     <div 
@@ -316,14 +340,9 @@ function App() {
 
         return (
             <div className="retro-window">
-                <div className="timer-bar">
-                    <div 
-                        className="timer-fill"
-                        style={{width: `${progress}%`}}
-                    />
-                </div>
+                {renderProgress()}
 
-                <h3 className="subtitle">Question {currentQuestionIndex + 1}</h3>
+                <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
                 {!answered ? (
@@ -337,10 +356,8 @@ function App() {
                     </div>
                 ) : (
                     <>
-                        <div className="answer-reveal">
-                            <div className="answer-content">
-                                {currentQuestion.book}
-                            </div>
+                        <div className="answer-text">
+                            {currentQuestion.answer}
                         </div>
                         <div className="center-button">
                             <button 
