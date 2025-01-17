@@ -101,8 +101,35 @@
             background: rgba(51, 255, 51, 0.1);
         }
 
+        .button.selected {
+            background: rgba(51, 255, 51, 0.2);
+            transform: scale(0.98);
+        }
+
+        .character-button {
+            background: transparent;
+            color: #33ff33;
+            border: 2px solid #33ff33;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #33ff33;
+            box-shadow: 0 0 10px #33ff33;
+        }
+
+        .character-button.selected {
+            background: #33ff33;
+            color: black;
+            text-shadow: none;
+        }
+
         .team-card.selected {
             background: rgba(51, 255, 51, 0.2);
+            transform: scale(0.98);
+            border-width: 3px;
         }
 
         .character-select {
@@ -318,21 +345,33 @@
                     setLoading(true);
                     const response = await fetch('OBOBquestions.csv');
                     const text = await response.text();
-                    console.log('CSV loaded, first 100 chars:', text.substring(0, 100));
                     
                     const results = Papa.parse(text, {
                         header: true,
                         skipEmptyLines: true
                     });
                     
-                    console.log('Questions parsed, count:', results.data.length);
-                    
-                    // Just take 5 questions for testing
-                    const shuffled = [...results.data]
+                    // Filter for only 'iwb' type questions and shuffle them
+                    const iwbQuestions = results.data
+                        .filter(q => q.qtype === 'iwb')
                         .sort(() => Math.random() - 0.5)
                         .slice(0, 5);
                     
-                    setQuestions(shuffled);
+                    // Pre-calculate answer options for each question
+                    const questionsWithOptions = iwbQuestions.map(question => {
+                        const otherBooks = new Set(iwbQuestions.map(q => q.book));
+                        otherBooks.delete(question.book);
+                        const options = [...Array.from(otherBooks)]
+                            .sort(() => Math.random() - 0.5)
+                            .slice(0, 3);
+                        
+                        return {
+                            ...question,
+                            options: [...options, question.book].sort(() => Math.random() - 0.5)
+                        };
+                    });
+                    
+                    setQuestions(questionsWithOptions);
                     setLoading(false);
                 } catch (error) {
                     console.error('Error loading questions:', error);
@@ -371,7 +410,7 @@
                                 {TEAM_MEMBERS[team].map((memberName) => (
                                     <button 
                                         key={memberName}
-                                        className={`button ${character === memberName ? 'selected' : ''}`}
+                                        className={`character-button ${character === memberName ? 'selected' : ''}`}
                                         onClick={() => setCharacter(memberName)}
                                     >
                                         {memberName}
@@ -441,25 +480,22 @@
                         <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                         <p>{currentQuestion.question}</p>
                         <div className="character-select">
-                            {Array.from(new Set(questions.map(q => q.book)))
-                                .sort(() => Math.random() - 0.5)
-                                .slice(0, 4)
-                                .map((book) => (
-                                    <button
-                                        key={book}
-                                        className={`answer-button ${
-                                            answered 
-                                                ? book === currentQuestion.book 
-                                                    ? 'correct'
-                                                    : 'incorrect'
-                                                : ''
-                                        }`}
-                                        onClick={() => handleAnswer(book)}
-                                        disabled={answered}
-                                    >
-                                        {book}
-                                    </button>
-                                ))}
+                            {currentQuestion.options.map((book) => (
+                                <button
+                                    key={book}
+                                    className={`answer-button ${
+                                        answered 
+                                            ? book === currentQuestion.book 
+                                                ? 'correct'
+                                                : 'incorrect'
+                                            : ''
+                                    }`}
+                                    onClick={() => handleAnswer(book)}
+                                    disabled={answered}
+                                >
+                                    {book}
+                                </button>
+                            ))}
                         </div>
 
                         {showFeedback && (
