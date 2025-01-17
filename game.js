@@ -3,9 +3,7 @@ const TEAM_MEMBERS = {
     'BOBOs': ['Archer', 'Matthew', 'Jordynn', 'Seth', 'Matilda']
 };
 
-// Create the App component
 const App = () => {
-    // Initialize state
     const [gameState, setGameState] = React.useState('title');
     const [team, setTeam] = React.useState('');
     const [character, setCharacter] = React.useState('');
@@ -133,16 +131,16 @@ const App = () => {
     };
 
     const renderProgress = () => (
-        <div className="progress-bar">
-            {Array.from({ length: questions.length }, (_, i) => (
-                <div 
-                    key={i}
+        <div className="question-progress">
+            {questions.map((_, index) => (
+                <div
+                    key={index}
                     className={`progress-segment ${
-                        i < currentQuestionIndex 
-                            ? answersHistory[i] 
+                        index < currentQuestionIndex 
+                            ? answersHistory[index] 
                                 ? 'correct' 
                                 : 'incorrect'
-                            : i === currentQuestionIndex 
+                            : index === currentQuestionIndex 
                                 ? 'current' 
                                 : ''
                     }`}
@@ -332,25 +330,6 @@ const App = () => {
         );
     };
 
-    const renderProgress = () => (
-        <div className="question-progress">
-            {questions.map((_, index) => (
-                <div
-                    key={index}
-                    className={`progress-segment ${
-                        index < currentQuestionIndex 
-                            ? answersHistory[index] 
-                                ? 'correct' 
-                                : 'incorrect'
-                            : index === currentQuestionIndex 
-                                ? 'current' 
-                                : ''
-                    }`}
-                />
-            ))}
-        </div>
-    );
-
     const renderContentReview = () => {
         if (loading || !questions.length) {
             return <div className="subtitle">Loading questions...</div>;
@@ -470,6 +449,6 @@ const App = () => {
             {renderContent()}
         </div>
     );
-}
+};
 
 ReactDOM.render(<App />, document.getElementById('root'));
