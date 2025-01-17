@@ -122,18 +122,49 @@
             box-shadow: 0 0 10px #33ff33;
         }
 
-        @media (max-width: 768px) {
-            .title {
-                font-size: 1.5rem;
-            }
-            
-            .team-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .container {
-                padding: 10px;
-            }
+        .timer-bar {
+            width: 100%;
+            height: 20px;
+            border: 2px solid #33ff33;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: #33ff33;
+            transition: width 1s linear;
+        }
+
+        .answer-button {
+            background: transparent;
+            color: #33ff33;
+            border: 2px solid #33ff33;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #33ff33;
+            box-shadow: 0 0 10px #33ff33;
+        }
+
+        .answer-button:hover {
+            background: rgba(51, 255, 51, 0.2);
+        }
+
+        .answer-button.correct {
+            background: #33ff33;
+            color: black;
+            text-shadow: none;
+        }
+
+        .answer-button.incorrect {
+            background: #ff3333;
+            color: white;
+            text-shadow: none;
         }
     </style>
 </head>
@@ -153,6 +184,55 @@
             const [questions, setQuestions] = React.useState([]);
             const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
             const [loading, setLoading] = React.useState(false);
+            const [timeLeft, setTimeLeft] = React.useState(30);
+            const [answered, setAnswered] = React.useState(false);
+            const [score, setScore] = React.useState(0);
+
+            // Timer effect
+            React.useEffect(() => {
+                let timer;
+                if (gameState === 'playing' && timeLeft > 0 && !answered) {
+                    timer = setInterval(() => {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
+                                handleTimeUp();
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                }
+                return () => clearInterval(timer);
+            }, [gameState, timeLeft, answered]);
+
+            const handleTimeUp = () => {
+                if (!answered) {
+                    setAnswered(true);
+                    setTimeout(nextQuestion, 2000);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    setCurrentQuestionIndex(i => i + 1);
+                    setAnswered(false);
+                    setTimeLeft(30);
+                } else {
+                    setGameState('finished');
+                }
+            };
+
+            const handleAnswer = (selectedBook) => {
+                if (answered) return;
+                
+                setAnswered(true);
+                const correct = selectedBook === questions[currentQuestionIndex].book;
+                if (correct) {
+                    setScore(s => s + 1);
+                }
+                
+                setTimeout(nextQuestion, 2000);
+            };
 
             // Simple function to load questions when needed
             const loadQuestions = async () => {
@@ -247,27 +327,40 @@
                 }
 
                 const currentQuestion = questions[currentQuestionIndex];
+                const timerPercentage = (timeLeft / 30) * 100;
 
                 return (
                     <div className="retro-window">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+                            <div>Score: {score}</div>
+                            <div>Time: {timeLeft}s</div>
+                        </div>
+
+                        <div className="timer-bar">
+                            <div 
+                                className="timer-fill"
+                                style={{width: `${timerPercentage}%`}}
+                            />
+                        </div>
+
                         <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                         <p>{currentQuestion.question}</p>
                         <div className="character-select">
-                            {/* Just show 4 random book options */}
                             {Array.from(new Set(questions.map(q => q.book)))
                                 .sort(() => Math.random() - 0.5)
                                 .slice(0, 4)
                                 .map((book) => (
                                     <button
                                         key={book}
-                                        className="button"
-                                        onClick={() => {
-                                            if (currentQuestionIndex < questions.length - 1) {
-                                                setCurrentQuestionIndex(i => i + 1);
-                                            } else {
-                                                setGameState('finished');
-                                            }
-                                        }}
+                                        className={`answer-button ${
+                                            answered 
+                                                ? book === currentQuestion.book 
+                                                    ? 'correct'
+                                                    : 'incorrect'
+                                                : ''
+                                        }`}
+                                        onClick={() => handleAnswer(book)}
+                                        disabled={answered}
                                     >
                                         {book}
                                     </button>
