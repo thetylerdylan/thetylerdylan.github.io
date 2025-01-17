@@ -200,6 +200,24 @@ const App = () => {
         </>
     );
 
+    const resetGameState = () => {
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setTimeLeft(30);
+        setAnswered(false);
+        setAnswersHistory([]);
+        setShowFeedback(false);
+        setLastAnswerCorrect(false);
+        setLoading(false);
+    };
+
+    const startNewGame = (count, mode) => {
+        resetGameState();
+        setQuestionCount(count);
+        setGameState(mode);
+    };
+
     const renderGameModeSelect = () => (
         <>
             <h2 className="subtitle">CHOOSE YOUR CHALLENGE</h2>
@@ -209,28 +227,19 @@ const App = () => {
                 <div className="character-select">
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(10);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(10, 'playing')}
                     >
                         10 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(20);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(20, 'playing')}
                     >
                         20 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(30);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(30, 'playing')}
                     >
                         30 Questions
                     </button>
@@ -243,28 +252,19 @@ const App = () => {
                 <div className="character-select">
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(5);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(5, 'review')}
                     >
                         5 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(10);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(10, 'review')}
                     >
                         10 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(20);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(20, 'review')}
                     >
                         20 Questions
                     </button>
@@ -391,10 +391,16 @@ const App = () => {
                 <>
                     <h2 className="title">{randomMessage}</h2>
                     <div className="character-select">
-                        <button className="button" onClick={() => setGameState('mode')}>
+                        <button className="button" onClick={() => {
+                            resetGameState();
+                            setGameState('mode');
+                        }}>
                             Try Another Challenge
                         </button>
-                        <button className="button" onClick={() => setGameState('title')}>
+                        <button className="button" onClick={() => {
+                            resetGameState();
+                            setGameState('title');
+                        }}>
                             Back to Start
                         </button>
                     </div>
@@ -413,10 +419,16 @@ const App = () => {
                     <h2 className="title">{message}</h2>
                     <p className="subtitle">Final Score: {score} / {questionCount}</p>
                     <div className="character-select">
-                        <button className="button" onClick={() => setGameState('mode')}>
+                        <button className="button" onClick={() => {
+                            resetGameState();
+                            setGameState('mode');
+                        }}>
                             Try Another Challenge
                         </button>
-                        <button className="button" onClick={() => setGameState('title')}>
+                        <button className="button" onClick={() => {
+                            resetGameState();
+                            setGameState('title');
+                        }}>
                             Back to Start
                         </button>
                     </div>
