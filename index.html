@@ -149,9 +149,11 @@
             transition: all 0.3s ease;
             text-shadow: 0 0 5px #33ff33;
             box-shadow: 0 0 10px #33ff33;
+            width: 100%;
+            text-align: left;
         }
 
-        .answer-button:hover {
+        .answer-button:hover:not(:disabled) {
             background: rgba(51, 255, 51, 0.2);
         }
 
@@ -159,12 +161,75 @@
             background: #33ff33;
             color: black;
             text-shadow: none;
+            animation: correctPulse 1s infinite;
         }
 
         .answer-button.incorrect {
             background: #ff3333;
+            border-color: #ff3333;
             color: white;
             text-shadow: none;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .results-tracker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .result-indicator {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #33ff33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .result-indicator.correct {
+            background: #33ff33;
+            color: black;
+        }
+
+        .result-indicator.incorrect {
+            border-color: #ff3333;
+            color: #ff3333;
+        }
+
+        .result-indicator.current {
+            animation: currentQuestion 1s infinite;
+        }
+
+        @keyframes currentQuestion {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .answer-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: #33ff33;
+            text-shadow: 0 0 20px #33ff33;
+            animation: feedbackPulse 0.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes feedbackPulse {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
         }
     </style>
 </head>
@@ -187,6 +252,9 @@
             const [timeLeft, setTimeLeft] = React.useState(30);
             const [answered, setAnswered] = React.useState(false);
             const [score, setScore] = React.useState(0);
+            const [results, setResults] = React.useState([]);
+            const [showFeedback, setShowFeedback] = React.useState(false);
+            const [lastAnswerCorrect, setLastAnswerCorrect] = React.useState(false);
 
             // Timer effect
             React.useEffect(() => {
@@ -208,11 +276,13 @@
             const handleTimeUp = () => {
                 if (!answered) {
                     setAnswered(true);
+                    setResults(prev => [...prev, false]);
                     setTimeout(nextQuestion, 2000);
                 }
             };
 
             const nextQuestion = () => {
+                setShowFeedback(false);
                 if (currentQuestionIndex < questions.length - 1) {
                     setCurrentQuestionIndex(i => i + 1);
                     setAnswered(false);
@@ -227,11 +297,18 @@
                 
                 setAnswered(true);
                 const correct = selectedBook === questions[currentQuestionIndex].book;
+                setLastAnswerCorrect(correct);
+                setResults(prev => [...prev, correct]);
+                
                 if (correct) {
                     setScore(s => s + 1);
                 }
                 
-                setTimeout(nextQuestion, 2000);
+                setShowFeedback(true);
+                setTimeout(() => {
+                    setShowFeedback(false);
+                    setTimeout(nextQuestion, 1000);
+                }, 1000);
             };
 
             // Simple function to load questions when needed
@@ -336,6 +413,24 @@
                             <div>Time: {timeLeft}s</div>
                         </div>
 
+                        <div className="results-tracker">
+                            {questions.slice(0, currentQuestionIndex + 1).map((_, index) => (
+                                <div 
+                                    key={index} 
+                                    className={`result-indicator ${
+                                        index < results.length 
+                                            ? results[index] ? 'correct' : 'incorrect'
+                                            : 'current'
+                                    }`}
+                                >
+                                    {index < results.length 
+                                        ? (results[index] ? '✓' : '×')
+                                        : (index + 1)
+                                    }
+                                </div>
+                            ))}
+                        </div>
+
                         <div className="timer-bar">
                             <div 
                                 className="timer-fill"
@@ -366,6 +461,12 @@
                                     </button>
                                 ))}
                         </div>
+
+                        {showFeedback && (
+                            <div className="answer-feedback">
+                                {lastAnswerCorrect ? '✓' : '×'}
+                            </div>
+                        )}
                     </div>
                 );
             };
