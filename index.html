@@ -327,9 +327,6 @@
                 setLastAnswerCorrect(correct);
                 setResults(prev => [...prev, correct]);
                 
-                // Track this answer
-                trackAnswer(questions[currentQuestionIndex], correct);
-                
                 if (correct) {
                     setScore(s => s + 1);
                 }
@@ -342,80 +339,12 @@
             };
 
             // Simple function to load questions when needed
-            // Simplified tracking state - just track difficult questions
-            const [questionTracker, setQuestionTracker] = React.useState(() => {
-                const saved = localStorage.getItem('obob-tracker');
-                return saved ? JSON.parse(saved) : {};
-            });
-
-            // Save tracker whenever it changes
-            React.useEffect(() => {
-                localStorage.setItem('obob-tracker', JSON.stringify(questionTracker));
-            }, [questionTracker]);
-
-            // Track incorrect answers to prioritize these questions later
-            const trackAnswer = (question, isCorrect) => {
-                if (!isCorrect) {
-                    setQuestionTracker(prev => ({
-                        ...prev,
-                        [question.question]: (prev[question.question] || 0) + 1
-                    }));
-                }
-            };
-
-            // Modified question loading to prioritize difficult questions
             const loadQuestions = async () => {
                 try {
+                    console.log('Starting to load questions...');
                     setLoading(true);
                     const response = await fetch('OBOBquestions.csv');
                     const text = await response.text();
-                    
-                    const parsedData = Papa.parse(text, {
-                        header: true,
-                        skipEmptyLines: true
-                    });
-                    
-                    // Filter for 'iwb' questions
-                    const iwbQuestions = parsedData.data.filter(q => q.qtype === 'iwb');
-                    
-                    // Sort questions by difficulty (number of times missed)
-                    const sortedQuestions = iwbQuestions.sort((a, b) => {
-                        const aMisses = questionTracker[a.question] || 0;
-                        const bMisses = questionTracker[b.question] || 0;
-                        return bMisses - aMisses;
-                    });
-                    
-                    // Take top N difficult questions and fill rest with random questions
-                    const difficultQuestions = sortedQuestions.slice(0, Math.floor(questionCount * 0.3));
-                    const remainingQuestions = sortedQuestions
-                        .slice(Math.floor(questionCount * 0.3))
-                        .sort(() => Math.random() - 0.5)
-                        .slice(0, questionCount - difficultQuestions.length);
-                    
-                    const selectedQuestions = [...difficultQuestions, ...remainingQuestions]
-                        .sort(() => Math.random() - 0.5);
-                    
-                    // Pre-calculate answer options for each question
-                    const questionsWithOptions = selectedQuestions.map(question => {
-                        const otherBooks = new Set(iwbQuestions.map(q => q.book));
-                        otherBooks.delete(question.book);
-                        const options = [...Array.from(otherBooks)]
-                            .sort(() => Math.random() - 0.5)
-                            .slice(0, 3);
-                        
-                        return {
-                            ...question,
-                            options: [...options, question.book].sort(() => Math.random() - 0.5)
-                        };
-                    });
-                    
-                    setQuestions(questionsWithOptions);
-                    setLoading(false);
-                } catch (error) {
-                    console.error('Error loading questions:', error);
-                    setLoading(false);
-                }
-            };
                     
                     const results = Papa.parse(text, {
                         header: true,
