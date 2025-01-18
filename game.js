@@ -40,6 +40,24 @@ const App = () => {
         return () => clearInterval(timer);
     }, [gameState, timeLeft, answered]);
 
+    const resetGameState = () => {
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setTimeLeft(30);
+        setAnswered(false);
+        setAnswersHistory([]);
+        setShowFeedback(false);
+        setLastAnswerCorrect(false);
+        setLoading(false);
+    };
+
+    const startNewGame = (count, mode) => {
+        resetGameState();
+        setQuestionCount(count);
+        setGameState(mode);
+    };
+
     const loadQuestions = async () => {
         try {
             setLoading(true);
@@ -116,18 +134,23 @@ const App = () => {
         
         setAnswered(true);
         const correct = selectedBook === questions[currentQuestionIndex].book;
-        setLastAnswerCorrect(correct);
-        setAnswersHistory(prev => [...prev, correct]);
         
-        if (correct) {
-            setScore(s => s + 1);
+        if (gameState === 'playing') {  // Only track score and history for 'playing' mode
+            setLastAnswerCorrect(correct);
+            setAnswersHistory(prev => [...prev, correct]);
+            
+            if (correct) {
+                setScore(s => s + 1);
+            }
+            
+            setShowFeedback(true);
+            setTimeout(() => {
+                setShowFeedback(false);
+                setTimeout(nextQuestion, 1000);
+            }, 1000);
+        } else {
+            nextQuestion();
         }
-        
-        setShowFeedback(true);
-        setTimeout(() => {
-            setShowFeedback(false);
-            setTimeout(nextQuestion, 1000);
-        }, 1000);
     };
 
     const renderProgress = () => (
@@ -151,12 +174,7 @@ const App = () => {
 
     const renderTitle = () => (
         <>
-            <div className="title">
-                <span className="title-word title-small">OREGON</span>
-                <span className="title-word">BATTLE</span>
-                <span className="title-word title-small">of the</span>
-                <span className="title-word">BOOKS</span>
-            </div>
+            <h1 className="title">OREGON BATTLE OF THE BOOKS</h1>
             <button className="button" onClick={() => setGameState('team')}>
                 START YOUR QUEST
             </button>
@@ -204,24 +222,6 @@ const App = () => {
             )}
         </>
     );
-
-    const resetGameState = () => {
-        setQuestions([]);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setTimeLeft(30);
-        setAnswered(false);
-        setAnswersHistory([]);
-        setShowFeedback(false);
-        setLastAnswerCorrect(false);
-        setLoading(false);
-    };
-
-    const startNewGame = (count, mode) => {
-        resetGameState();
-        setQuestionCount(count);
-        setGameState(mode);
-    };
 
     const renderGameModeSelect = () => (
         <>
@@ -344,7 +344,6 @@ const App = () => {
 
         return (
             <div className="retro-window">
-
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
@@ -370,7 +369,7 @@ const App = () => {
                                         setCurrentQuestionIndex(i => i + 1);
                                         setAnswered(false);
                                     } else {
-                                        setGameState('reviewComplete');  // Changed to a distinct state
+                                        setGameState('finished');
                                     }
                                 }}
                             >
@@ -383,43 +382,9 @@ const App = () => {
         );
     };
 
-    const renderReviewComplete = () => {
-        const messages = [
-            "Great job reviewing the content!",
-            "Keep reading and learning!",
-            "You're becoming a better reader every day!"
-        ];
-        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-        
-        return (
-            <>
-                <h2 className="title">{randomMessage}</h2>
-                <div className="character-select">
-                    <button 
-                        className="button" 
-                        onClick={() => {
-                            resetGameState();
-                            setGameState('mode');
-                        }}
-                    >
-                        Try Another Challenge
-                    </button>
-                    <button 
-                        className="button" 
-                        onClick={() => {
-                            resetGameState();
-                            setGameState('title');
-                        }}
-                    >
-                        Back to Start
-                    </button>
-                </div>
-            </>
-        );
-    };
-    
     const renderFinished = () => {
-        if (gameState === 'finished') {
+        // Content Review finish screen - no scoring
+        if (gameState === 'review') {
             const messages = [
                 "Great job reviewing the content!",
                 "Keep reading and learning!",
@@ -453,15 +418,15 @@ const App = () => {
                 </>
             );
         }
-    
-        // Only show scoring for the quiz mode
+        
+        // Quiz finish screen with scoring
         const percentage = (score / questionCount) * 100;
         let message = '';
         if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
         else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
         else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
         else message = "GOOD TRY! Every question makes you stronger!";
-    
+
         return (
             <>
                 <h2 className="title">{message}</h2>
@@ -489,7 +454,6 @@ const App = () => {
             </>
         );
     };
-        
 
     const renderContent = () => {
         switch(gameState) {
@@ -505,8 +469,6 @@ const App = () => {
                 return renderContentReview();
             case 'finished':
                 return renderFinished();
-            case 'reviewComplete':  // Add new case
-                return renderReviewComplete();
             default:
                 return renderTitle();
         }
