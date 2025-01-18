@@ -203,24 +203,26 @@ const App = () => {
         }
     };
 
-    const renderProgress = () => (
-        <div className="question-progress">
+    const renderProgress = () => {
+        return (
+          <div className="question-progress">
             {questions.map((_, index) => (
-                <div
-                    key={index}
-                    className={`progress-segment ${
-                        index < currentQuestionIndex 
-                            ? answersHistory[index] 
-                                ? 'correct' 
-                                : 'incorrect'
-                            : index === currentQuestionIndex 
-                                ? 'current' 
-                                : ''
-                    }`}
-                />
+              <div
+                key={index}
+                className={`progress-segment ${
+                  index < currentQuestionIndex
+                    ? answersHistory[index]
+                      ? 'correct'
+                      : 'incorrect'
+                    : index === currentQuestionIndex
+                    ? 'current'
+                    : ''
+                }`}
+              />
             ))}
-        </div>
-    );
+          </div>
+        );
+      };
 
     const renderTitle = () => (
         <>
