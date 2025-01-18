@@ -1,4 +1,4 @@
-// sound-utils.js
+// sound.js
 const MUSIC = {
     title: new Audio('rpgchip01.mid'),
     options: new Audio('rpgchip06.mid'),
@@ -35,4 +35,6 @@ const playSound = (soundName) => {
     sound.play();
 };
 
-export { playMusic, playSound, stopAllMusic };
+window.playMusic = playMusic;
+window.playSound = playSound;
+window.stopAllMusic = stopAllMusic;

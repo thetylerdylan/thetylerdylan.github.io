@@ -1,4 +1,6 @@
-import { playMusic, playSound, stopAllMusic } from './sound.js';
+const playMusic = window.playMusic;
+const playSound = window.playSound;
+const stopAllMusic = window.stopAllMusic;
 
 const TEAM_MEMBERS = {
     'Wise Eyes': ['Aesop', 'Lara', 'Ronan', 'Quincy'],
