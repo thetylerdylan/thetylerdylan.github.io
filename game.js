@@ -339,7 +339,6 @@ const App = () => {
 
         return (
             <div className="retro-window">
-                {renderProgress()}
 
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
