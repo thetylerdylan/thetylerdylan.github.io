@@ -1,5 +1,10 @@
 import { playMusic, playSound, stopAllMusic } from './sound.js';
 
+// Use the imported functions
+const playMusicFunc = playMusic;
+const playSoundFunc = playSound;
+const stopAllMusicFunc = stopAllMusic;
+
 window.playMusic = playMusic;
 window.playSound = playSound;
 window.stopAllMusic = stopAllMusic;
