@@ -379,6 +379,41 @@ const App = () => {
         );
     };
 
+    const renderReviewComplete = () => {
+        const messages = [
+            "Great job reviewing the content!",
+            "Keep reading and learning!",
+            "You're becoming a better reader every day!"
+        ];
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        
+        return (
+            <>
+                <h2 className="title">{randomMessage}</h2>
+                <div className="character-select">
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('mode');
+                        }}
+                    >
+                        Try Another Challenge
+                    </button>
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('title');
+                        }}
+                    >
+                        Back to Start
+                    </button>
+                </div>
+            </>
+        );
+    };
+    
     const renderFinished = () => {
         if (gameState === 'finished') {
             const messages = [
