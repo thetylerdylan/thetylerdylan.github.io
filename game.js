@@ -40,24 +40,6 @@ const App = () => {
         return () => clearInterval(timer);
     }, [gameState, timeLeft, answered]);
 
-    const resetGameState = () => {
-        setQuestions([]);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setTimeLeft(30);
-        setAnswered(false);
-        setAnswersHistory([]);
-        setShowFeedback(false);
-        setLastAnswerCorrect(false);
-        setLoading(false);
-    };
-
-    const startNewGame = (count, mode) => {
-        resetGameState();
-        setQuestionCount(count);
-        setGameState(mode);
-    };
-
     const loadQuestions = async () => {
         try {
             setLoading(true);
@@ -113,9 +95,7 @@ const App = () => {
     const handleTimeUp = () => {
         if (!answered) {
             setAnswered(true);
-            if (gameState === 'playing') {
-                setAnswersHistory(prev => [...prev, false]);
-            }
+            setAnswersHistory(prev => [...prev, false]);
             setTimeout(nextQuestion, 2000);
         }
     };
@@ -135,21 +115,19 @@ const App = () => {
         if (answered) return;
         
         setAnswered(true);
-        if (gameState === 'playing') {
-            const correct = selectedBook === questions[currentQuestionIndex].book;
-            setLastAnswerCorrect(correct);
-            setAnswersHistory(prev => [...prev, correct]);
-            
-            if (correct) {
-                setScore(s => s + 1);
-            }
-            
-            setShowFeedback(true);
-            setTimeout(() => {
-                setShowFeedback(false);
-                setTimeout(nextQuestion, 1000);
-            }, 1000);
+        const correct = selectedBook === questions[currentQuestionIndex].book;
+        setLastAnswerCorrect(correct);
+        setAnswersHistory(prev => [...prev, correct]);
+        
+        if (correct) {
+            setScore(s => s + 1);
         }
+        
+        setShowFeedback(true);
+        setTimeout(() => {
+            setShowFeedback(false);
+            setTimeout(nextQuestion, 1000);
+        }, 1000);
     };
 
     const renderProgress = () => (
@@ -221,6 +199,24 @@ const App = () => {
             )}
         </>
     );
+
+    const resetGameState = () => {
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setTimeLeft(30);
+        setAnswered(false);
+        setAnswersHistory([]);
+        setShowFeedback(false);
+        setLastAnswerCorrect(false);
+        setLoading(false);
+    };
+
+    const startNewGame = (count, mode) => {
+        resetGameState();
+        setQuestionCount(count);
+        setGameState(mode);
+    };
 
     const renderGameModeSelect = () => (
         <>
@@ -343,6 +339,8 @@ const App = () => {
 
         return (
             <div className="retro-window">
+                {renderProgress()}
+
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
@@ -382,7 +380,7 @@ const App = () => {
     };
 
     const renderFinished = () => {
-        // Content Review finish screen - no scoring
+        // Content Review finish screen
         if (gameState === 'review') {
             const messages = [
                 "Great job reviewing the content!",
@@ -416,9 +414,9 @@ const App = () => {
                     </div>
                 </>
             );
-        }
+        } 
         
-        // Quiz finish screen with scoring
+        // Quiz finish screen
         const percentage = (score / questionCount) * 100;
         let message = '';
         if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
