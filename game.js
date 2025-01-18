@@ -1,4 +1,4 @@
-import { playMusic, playSound, stopAllMusic } from './audio.js';
+import { playMusic, playSound, stopAllMusic } from './sound.js';
 
 const TEAM_MEMBERS = {
     'Wise Eyes': ['Aesop', 'Lara', 'Ronan', 'Quincy'],
@@ -139,12 +139,15 @@ const App = () => {
         setAnswered(true);
         const correct = selectedBook === questions[currentQuestionIndex].book;
         
-        if (gameState === 'playing') {  // Only track score and history for 'playing' mode
+        if (gameState === 'playing') {
             setLastAnswerCorrect(correct);
             setAnswersHistory(prev => [...prev, correct]);
             
             if (correct) {
                 setScore(s => s + 1);
+                playSound('button');  // Could optionally use 'win' here instead
+            } else {
+                playSound('button');  // Could optionally use 'lose' here instead
             }
             
             setShowFeedback(true);
@@ -153,6 +156,7 @@ const App = () => {
                 setTimeout(nextQuestion, 1000);
             }, 1000);
         } else {
+            playSound('button');
             nextQuestion();
         }
     };
@@ -450,6 +454,7 @@ const App = () => {
                                 playSound('button');
                                 resetGameState();
                                 setGameState('mode');
+                                playMusic('options');
                             }}
                         >
                             Try Another Challenge
@@ -460,6 +465,7 @@ const App = () => {
                                 playSound('button');
                                 resetGameState();
                                 setGameState('title');
+                                playMusic('title');
                             }}
                         >
                             Back to Start
