@@ -366,7 +366,7 @@ const App = () => {
                                         setCurrentQuestionIndex(i => i + 1);
                                         setAnswered(false);
                                     } else {
-                                        setGameState('finished');
+                                        setGameState('reviewComplete');  // Changed to a distinct state
                                     }
                                 }}
                             >
@@ -466,6 +466,8 @@ const App = () => {
                 return renderContentReview();
             case 'finished':
                 return renderFinished();
+            case 'reviewComplete':  // Add new case
+                return renderReviewComplete();
             default:
                 return renderTitle();
         }
