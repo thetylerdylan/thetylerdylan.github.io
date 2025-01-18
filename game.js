@@ -380,7 +380,7 @@ const App = () => {
     };
 
     const renderFinished = () => {
-        if (gameState === 'review') {
+        if (gameState === 'reviewComplete') {
             const messages = [
                 "Great job reviewing the content!",
                 "Keep reading and learning!",
