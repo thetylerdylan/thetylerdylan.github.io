@@ -113,7 +113,9 @@ const App = () => {
     const handleTimeUp = () => {
         if (!answered) {
             setAnswered(true);
-            setAnswersHistory(prev => [...prev, false]);
+            if (gameState === 'playing') {
+                setAnswersHistory(prev => [...prev, false]);
+            }
             setTimeout(nextQuestion, 2000);
         }
     };
@@ -133,19 +135,21 @@ const App = () => {
         if (answered) return;
         
         setAnswered(true);
-        const correct = selectedBook === questions[currentQuestionIndex].book;
-        setLastAnswerCorrect(correct);
-        setAnswersHistory(prev => [...prev, correct]);
-        
-        if (correct) {
-            setScore(s => s + 1);
+        if (gameState === 'playing') {
+            const correct = selectedBook === questions[currentQuestionIndex].book;
+            setLastAnswerCorrect(correct);
+            setAnswersHistory(prev => [...prev, correct]);
+            
+            if (correct) {
+                setScore(s => s + 1);
+            }
+            
+            setShowFeedback(true);
+            setTimeout(() => {
+                setShowFeedback(false);
+                setTimeout(nextQuestion, 1000);
+            }, 1000);
         }
-        
-        setShowFeedback(true);
-        setTimeout(() => {
-            setShowFeedback(false);
-            setTimeout(nextQuestion, 1000);
-        }, 1000);
     };
 
     const renderProgress = () => (
