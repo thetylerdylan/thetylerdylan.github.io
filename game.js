@@ -5,9 +5,9 @@ const playMusicFunc = playMusic;
 const playSoundFunc = playSound;
 const stopAllMusicFunc = stopAllMusic;
 
-window.playMusic = playMusicFunc;
-window.playSound = playSoundFunc;
-window.stopAllMusic = stopAllMusicFunc;
+window.playMusic = playMusic;
+window.playSound = playSound;
+window.stopAllMusic = stopAllMusic;
 
 const TEAM_MEMBERS = {
     'Wise Eyes': ['Aesop', 'Lara', 'Ronan', 'Quincy'],
