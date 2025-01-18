@@ -17,24 +17,20 @@ Object.values(MUSIC).forEach(track => {
     track.loop = true;
 });
 
-const stopAllMusic = () => {
+export const stopAllMusic = () => {
     Object.values(MUSIC).forEach(track => {
         track.pause();
         track.currentTime = 0;
     });
 };
 
-const playMusic = (trackName) => {
+export const playMusic = (trackName) => {
     stopAllMusic();
     MUSIC[trackName].play();
 };
 
-const playSound = (soundName) => {
+export const playSound = (soundName) => {
     const sound = SFX[soundName];
     sound.currentTime = 0;
     sound.play();
 };
-
-window.playMusic = playMusic;
-window.playSound = playSound;
-window.stopAllMusic = stopAllMusic;
