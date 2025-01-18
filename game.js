@@ -152,7 +152,7 @@ const App = () => {
     const renderTitle = () => (
         <>
             <div className="title">
-                <span className="title-word">OREGON</span>
+                <span className="title-word title-small">OREGON</span>
                 <span className="title-word">BATTLE</span>
                 <span className="title-word title-small">of the</span>
                 <span className="title-word">BOOKS</span>
