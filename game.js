@@ -174,7 +174,12 @@ const App = () => {
 
     const renderTitle = () => (
         <>
-            <h1 className="title">OREGON BATTLE OF THE BOOKS</h1>
+            <div className="title">
+                <span className="title-word title-small">OREGON</span>
+                <span className="title-word">BATTLE</span>
+                <span className="title-word title-small">of the</span>
+                <span className="title-word">BOOKS</span>
+            </div>
             <button className="button" onClick={() => setGameState('team')}>
                 START YOUR QUEST
             </button>
