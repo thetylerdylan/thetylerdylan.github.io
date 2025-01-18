@@ -120,29 +120,33 @@ body {
     text-shadow: none;
 }
 
-.progress-bar {
+.question-progress {
     display: flex;
     width: 100%;
-    height: 20px;
+    height: 24px;
     margin: 20px 0;
-    gap: 2px;
+    gap: 4px;
+    padding: 2px;
+    background: rgba(51, 255, 51, 0.1);
+    border: 2px solid #33ff33;
 }
 
 .progress-segment {
     flex: 1;
-    height: 100%;
-    background: rgba(51, 255, 51, 0.1);
-    border: 1px solid #33ff33;
+    background: transparent;
     transition: all 0.3s ease;
+    border: 1px solid rgba(51, 255, 51, 0.3);
 }
 
 .progress-segment.current {
     background: rgba(51, 255, 51, 0.3);
-    animation: pulseCurrent 1s infinite;
+    animation: pulseCurrent 1s infinite alternate;
+    border-color: #33ff33;
 }
 
 .progress-segment.correct {
     background: #33ff33;
+    border-color: #33ff33;
 }
 
 .progress-segment.incorrect {
@@ -151,9 +155,8 @@ body {
 }
 
 @keyframes pulseCurrent {
-    0% { background: rgba(51, 255, 51, 0.3); }
-    50% { background: rgba(51, 255, 51, 0.5); }
-    100% { background: rgba(51, 255, 51, 0.3); }
+    0% { background: rgba(51, 255, 51, 0.2); }
+    100% { background: rgba(51, 255, 51, 0.4); }
 }
 
 .timer-bar {
@@ -189,15 +192,22 @@ body {
     font-size: 1rem;
     cursor: pointer;
     margin: 10px;
+    width: 100%;
+    text-align: left;
     transition: all 0.3s ease;
     text-shadow: 0 0 5px #33ff33;
     box-shadow: 0 0 10px #33ff33;
-    width: 100%;
-    text-align: left;
 }
 
 .answer-button:hover:not(:disabled) {
-    background: rgba(51, 255, 51, 0.2);
+    background: transparent;
+    box-shadow: 0 0 15px #33ff33;
+}
+
+.answer-button:disabled {
+    cursor: not-allowed;
+    opacity: 1;
+    background: transparent;
 }
 
 .answer-button.correct {
@@ -215,22 +225,18 @@ body {
 }
 
 .answer-text {
-    margin: 20px 0;
+    margin: 20px;
     padding: 20px;
+    color: #33ff33;
     text-align: center;
-    animation: textReveal 0.5s ease-out;
+    font-size: 0.9rem;
     line-height: 1.8;
+    animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes textReveal {
-    0% { 
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    100% { 
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .feedback-overlay {
@@ -242,7 +248,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 1000;
 }
 
@@ -295,7 +301,11 @@ body {
         font-size: 0.8rem;
     }
 
-    .progress-bar {
-        height: 15px;
+    .question-progress {
+        height: 16px;
+    }
+
+    .feedback-content {
+        font-size: 6rem;
     }
 }
