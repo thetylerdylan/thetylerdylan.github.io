@@ -397,7 +397,7 @@ const App = () => {
                             setGameState('mode');
                         }}
                     >
-                        Try Another Challenge
+                        Try Another Challenge5
                     </button>
                     <button 
                         className="button" 
