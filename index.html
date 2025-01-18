@@ -36,19 +36,27 @@
     <div id="root"></div>
 
     <!-- Initialize Audio Manager -->
+<!-- Initialize Audio Manager -->
     <script>
         // Audio Configuration
+        const createAudio = (src) => {
+            const audio = new Audio();
+            audio.preload = 'auto';
+            audio.src = src;
+            return audio;
+        };
+
         const MUSIC = {
-            title: new Audio('rpgchip01.mid'),
-            options: new Audio('rpgchip06.mid'),
-            quiz: new Audio('rpgchip08.mid'),
-            review: new Audio('rpgchip10.mid')
+            title: createAudio('rpgchip01.mp3'),
+            options: createAudio('rpgchip06.mp3'),
+            quiz: createAudio('rpgchip08.mp3'),
+            review: createAudio('rpgchip10.mp3')
         };
 
         const SFX = {
-            win: new Audio('win.mp3'),
-            lose: new Audio('lose.mp3'),
-            button: new Audio('button.mp3')
+            win: createAudio('win.mp3'),
+            lose: createAudio('lose.mp3'),
+            button: createAudio('button.mp3')
         };
 
         // Configure all music tracks to loop
@@ -56,7 +64,7 @@
             track.loop = true;
         });
 
-        // Create global AudioManager
+        // Create global AudioManager with improved error handling
         window.AudioManager = {
             stopAllMusic: function() {
                 Object.values(MUSIC).forEach(track => {
@@ -68,14 +76,22 @@
             playMusic: function(trackName) {
                 this.stopAllMusic();
                 if (MUSIC[trackName]) {
-                    MUSIC[trackName].play().catch(e => console.warn('Audio playback failed:', e));
+                    MUSIC[trackName].play()
+                        .catch(e => {
+                            console.warn('Audio playback failed:', e);
+                            // Initialize audio on next user interaction
+                            document.addEventListener('click', () => {
+                                MUSIC[trackName].play().catch(() => {});
+                            }, { once: true });
+                        });
                 }
             },
 
             playSound: function(soundName) {
                 if (SFX[soundName]) {
                     SFX[soundName].currentTime = 0;
-                    SFX[soundName].play().catch(e => console.warn('Audio playback failed:', e));
+                    SFX[soundName].play()
+                        .catch(e => console.warn('Sound playback failed:', e));
                 }
             }
         };
@@ -140,6 +156,23 @@
                     stopAllMusic();
                 };
             }, []); // Empty dependency array means this runs once on mount
+
+            React.useEffect(() => {
+                if (gameState === 'finished') {
+                    if (gameState === 'review') {
+                        playSound('win');
+                    } else {
+                        const percentage = (score / questionCount) * 100;
+                        if (percentage >= 70) {
+                            playSound('win');
+                        } else {
+                            playSound('lose');
+                        }
+                    }
+                    playMusic('options');
+                }
+            }, [gameState, score, questionCount]);
+
 
             React.useEffect(() => {
                 switch(gameState) {
@@ -539,20 +572,6 @@
             };
 
             const renderFinished = () => {
-                React.useEffect(() => {
-                    if (gameState === 'review') {
-                        playSound('win');
-                    } else {
-                        const percentage = (score / questionCount) * 100;
-                        if (percentage >= 70) {
-                            playSound('win');
-                        } else {
-                            playSound('lose');
-                        }
-                    }
-                    playMusic('options');
-                }, []);
-            
                 if (gameState === 'review') {
                     const messages = [
                         "Great job reviewing the content!",
@@ -590,6 +609,47 @@
                             </div>
                         </>
                     );
+                }
+                
+                // Quiz finish screen with scoring
+                const percentage = (score / questionCount) * 100;
+                let message = '';
+                if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
+                else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
+                else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
+                else message = "GOOD TRY! Every question makes you stronger!";
+
+                return (
+                    <>
+                        <h2 className="title">{message}</h2>
+                        <p className="subtitle">Final Score: {score} / {questionCount}</p>
+                        <div className="character-select">
+                            <button 
+                                className="button" 
+                                onClick={() => {
+                                    playSound('button');
+                                    resetGameState();
+                                    setGameState('mode');
+                                    playMusic('options');
+                                }}
+                            >
+                                Try Another Challenge
+                            </button>
+                            <button 
+                                className="button" 
+                                onClick={() => {
+                                    playSound('button');
+                                    resetGameState();
+                                    setGameState('title');
+                                    playMusic('title');
+                                }}
+                            >
+                                Back to Start
+                            </button>
+                        </div>
+                    </>
+                );
+            };
                 }
                 
                 // Quiz finish screen with scoring
