@@ -11,18 +11,22 @@
     <script src="https://unpkg.com/@babel/standalone@7.22.20/babel.min.js"></script>
     <script src="https://unpkg.com/papaparse@5.3.0/papaparse.min.js"></script>
     
-    <!-- Font preloading for better performance -->
+    <!-- Font preloading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
-    <!-- Mobile app enhancements -->
+    <!-- Mobile optimization -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
+    <meta name="description" content="Oregon Battle of the Books Quiz Game for 3rd-5th grade students">
     
-    <!-- Prevent text size adjustment on orientation change -->
+    <!-- iOS specific -->
+    <meta name="apple-mobile-web-app-title" content="OBOB Quiz">
+    
+    <!-- Prevent text size adjustment -->
     <style>
         html {
             -webkit-text-size-adjust: 100%;
@@ -33,11 +37,36 @@
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Root element for React -->
+    <!-- Root element --><b>VERSION 0.05</b>
     <div id="root"></div>
 
+    <!-- Audio Manager Module -->
+    <script type="module">
+        import { AudioManager } from './sound.js';
+        window.AudioManager = AudioManager;
+    </script>
+
     <!-- Game Logic -->
-    <script type="module" src="sound.js"></script>
-    <script type="module" src="game.js"></script>
+    <script type="text/babel" data-type="module">
+        import { AudioManager } from './sound.js';
+        
+        // Import game component
+        fetch('game.js')
+            .then(response => response.text())
+            .then(text => {
+                // Remove the first line (import statement) as we've already imported AudioManager
+                const gameCode = text.split('\n').slice(1).join('\n');
+                const script = document.createElement('script');
+                script.type = 'text/babel';
+                script.text = gameCode;
+                document.body.appendChild(script);
+            })
+            .catch(error => console.error('Error loading game:', error));
+    </script>
+
+    <!-- Enable Babel transformation -->
+    <script>
+        Babel.transformScriptTags();
+    </script>
 </body>
 </html>

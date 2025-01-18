@@ -1,13 +1,5 @@
-import { playMusic, playSound, stopAllMusic } from './sound.js';
-
-// Use the imported functions
-const playMusicFunc = playMusic;
-const playSoundFunc = playSound;
-const stopAllMusicFunc = stopAllMusic;
-
-window.playMusic = playMusic;
-window.playSound = playSound;
-window.stopAllMusic = stopAllMusic;
+// game.js
+import { AudioManager } from './sound.js';
 
 const TEAM_MEMBERS = {
     'Wise Eyes': ['Aesop', 'Lara', 'Ronan', 'Quincy'],
@@ -53,31 +45,31 @@ const App = () => {
 
     React.useEffect(() => {
         // Start with title music
-        playMusic('title');
+        AudioManager.playMusic('title');
 
         // Cleanup function to stop all music when component unmounts
         return () => {
-            stopAllMusic();
+            AudioManager.stopAllMusic();
         };
-    }, []);  // Empty dependency array means this runs once on mount
+    }, []); // Empty dependency array means this runs once on mount
 
     React.useEffect(() => {
         switch(gameState) {
             case 'title':
-                playMusic('title');
+                AudioManager.playMusic('title');
                 break;
             case 'team':
             case 'mode':
-                playMusic('options');
+                AudioManager.playMusic('options');
                 break;
             case 'playing':
-                playMusic('quiz');
+                AudioManager.playMusic('quiz');
                 break;
             case 'review':
-                playMusic('review');
+                AudioManager.playMusic('review');
                 break;
             case 'finished':
-                playMusic('options');
+                AudioManager.playMusic('options');
                 break;
             default:
                 break;
@@ -100,8 +92,8 @@ const App = () => {
         resetGameState();
         setQuestionCount(count);
         setGameState(mode);
-        playSound('button');
-        playMusic(mode === 'playing' ? 'quiz' : 'review');
+        AudioManager.playSound('button');
+        AudioManager.playMusic(mode === 'playing' ? 'quiz' : 'review');
     };
 
     const loadQuestions = async () => {
@@ -125,7 +117,6 @@ const App = () => {
                 .slice(0, questionCount);
             
             if (gameState === 'playing') {
-                // Pre-calculate answer options for each question
                 const questionsWithOptions = shuffledQuestions.map(question => {
                     const otherBooks = new Set(parsedData.data.map(q => q.book));
                     otherBooks.delete(question.book);
@@ -187,9 +178,9 @@ const App = () => {
             
             if (correct) {
                 setScore(s => s + 1);
-                playSound('button');  // Could optionally use 'win' here instead
+                AudioManager.playSound('button'); // Could optionally use 'win' here instead
             } else {
-                playSound('button');  // Could optionally use 'lose' here instead
+                AudioManager.playSound('button'); // Could optionally use 'lose' here instead
             }
             
             setShowFeedback(true);
@@ -198,7 +189,7 @@ const App = () => {
                 setTimeout(nextQuestion, 1000);
             }, 1000);
         } else {
-            playSound('button');
+            AudioManager.playSound('button');
             nextQuestion();
         }
     };
@@ -222,7 +213,7 @@ const App = () => {
             ))}
           </div>
         );
-      };
+    };
 
     const renderTitle = () => (
         <>
@@ -235,9 +226,9 @@ const App = () => {
             <button 
                 className="button" 
                 onClick={() => {
-                    playSound('button');
+                    AudioManager.playSound('button');
                     setGameState('team');
-                    playMusic('options');
+                    AudioManager.playMusic('options');
                 }}
             >
                 START YOUR QUEST
@@ -254,7 +245,7 @@ const App = () => {
                         key={teamName}
                         className={`team-card ${team === teamName ? 'selected' : ''}`}
                         onClick={() => {
-                            playSound('button');
+                            AudioManager.playSound('button');
                             setTeam(teamName);
                         }}
                     >
@@ -272,7 +263,7 @@ const App = () => {
                                 key={memberName}
                                 className={`character-button ${character === memberName ? 'selected' : ''}`}
                                 onClick={() => {
-                                    playSound('button');
+                                    AudioManager.playSound('button');
                                     setCharacter(memberName);
                                 }}
                             >
@@ -286,7 +277,7 @@ const App = () => {
                 <button 
                     className="button" 
                     onClick={() => {
-                        playSound('button');
+                        AudioManager.playSound('button');
                         setGameState('mode');
                     }}
                 >
@@ -425,7 +416,7 @@ const App = () => {
                             <button 
                                 className="button"
                                 onClick={() => {
-                                    playSound('button');
+                                    AudioManager.playSound('button');
                                     setAnswered(true);
                                 }}
                             >
@@ -441,7 +432,7 @@ const App = () => {
                                 <button 
                                     className="button"
                                     onClick={() => {
-                                        playSound('button');
+                                        AudioManager.playSound('button');
                                         if (currentQuestionIndex < questions.length - 1) {
                                             setCurrentQuestionIndex(i => i + 1);
                                             setAnswered(false);
@@ -462,16 +453,16 @@ const App = () => {
     const renderFinished = () => {
         React.useEffect(() => {
             if (gameState === 'review') {
-                playSound('win');
+                AudioManager.playSound('win');
             } else {
                 const percentage = (score / questionCount) * 100;
                 if (percentage >= 70) {
-                    playSound('win');
+                    AudioManager.playSound('win');
                 } else {
-                    playSound('lose');
+                    AudioManager.playSound('lose');
                 }
             }
-            playMusic('options');
+            AudioManager.playMusic('options');
         }, []);
     
         if (gameState === 'review') {
@@ -489,10 +480,10 @@ const App = () => {
                         <button 
                             className="button" 
                             onClick={() => {
-                                playSound('button');
+                                AudioManager.playSound('button');
                                 resetGameState();
                                 setGameState('mode');
-                                playMusic('options');
+                                AudioManager.playMusic('options');
                             }}
                         >
                             Try Another Challenge
@@ -500,10 +491,10 @@ const App = () => {
                         <button 
                             className="button" 
                             onClick={() => {
-                                playSound('button');
+                                AudioManager.playSound('button');
                                 resetGameState();
                                 setGameState('title');
-                                playMusic('title');
+                                AudioManager.playMusic('title');
                             }}
                         >
                             Back to Start
@@ -529,8 +520,10 @@ const App = () => {
                     <button 
                         className="button" 
                         onClick={() => {
+                            AudioManager.playSound('button');
                             resetGameState();
                             setGameState('mode');
+                            AudioManager.playMusic('options');
                         }}
                     >
                         Try Another Challenge
@@ -538,8 +531,10 @@ const App = () => {
                     <button 
                         className="button" 
                         onClick={() => {
+                            AudioManager.playSound('button');
                             resetGameState();
                             setGameState('title');
+                            AudioManager.playMusic('title');
                         }}
                     >
                         Back to Start

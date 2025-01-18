@@ -17,22 +17,28 @@ Object.values(MUSIC).forEach(track => {
     track.loop = true;
 });
 
-const stopAllMusic = () => {
-    Object.values(MUSIC).forEach(track => {
-        track.pause();
-        track.currentTime = 0;
-    });
+export const AudioManager = {
+    stopAllMusic: () => {
+        Object.values(MUSIC).forEach(track => {
+            track.pause();
+            track.currentTime = 0;
+        });
+    },
+
+    playMusic: (trackName) => {
+        AudioManager.stopAllMusic();
+        if (MUSIC[trackName]) {
+            MUSIC[trackName].play().catch(e => console.warn('Audio playback failed:', e));
+        }
+    },
+
+    playSound: (soundName) => {
+        if (SFX[soundName]) {
+            SFX[soundName].currentTime = 0;
+            SFX[soundName].play().catch(e => console.warn('Audio playback failed:', e));
+        }
+    }
 };
 
-const playMusic = (trackName) => {
-    stopAllMusic();
-    MUSIC[trackName].play();
-};
-
-const playSound = (soundName) => {
-    const sound = SFX[soundName];
-    sound.currentTime = 0;
-    sound.play();
-};
-
-export { stopAllMusic, playMusic, playSound };
+// For legacy support
+window.AudioManager = AudioManager;
