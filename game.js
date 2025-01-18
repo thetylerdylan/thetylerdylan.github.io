@@ -3,7 +3,7 @@ const TEAM_MEMBERS = {
     'BOBOs': ['Archer', 'Matthew', 'Jordynn', 'Seth', 'Matilda']
 };
 
-function App() {
+const App = () => {
     const [gameState, setGameState] = React.useState('title');
     const [team, setTeam] = React.useState('');
     const [character, setCharacter] = React.useState('');
@@ -39,6 +39,24 @@ function App() {
         }
         return () => clearInterval(timer);
     }, [gameState, timeLeft, answered]);
+
+    const resetGameState = () => {
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setTimeLeft(30);
+        setAnswered(false);
+        setAnswersHistory([]);
+        setShowFeedback(false);
+        setLastAnswerCorrect(false);
+        setLoading(false);
+    };
+
+    const startNewGame = (count, mode) => {
+        resetGameState();
+        setQuestionCount(count);
+        setGameState(mode);
+    };
 
     const loadQuestions = async () => {
         try {
@@ -131,16 +149,16 @@ function App() {
     };
 
     const renderProgress = () => (
-        <div className="progress-bar">
-            {Array.from({ length: questions.length }, (_, i) => (
-                <div 
-                    key={i}
+        <div className="question-progress">
+            {questions.map((_, index) => (
+                <div
+                    key={index}
                     className={`progress-segment ${
-                        i < currentQuestionIndex 
-                            ? answersHistory[i] 
+                        index < currentQuestionIndex 
+                            ? answersHistory[index] 
                                 ? 'correct' 
                                 : 'incorrect'
-                            : i === currentQuestionIndex 
+                            : index === currentQuestionIndex 
                                 ? 'current' 
                                 : ''
                     }`}
@@ -209,28 +227,19 @@ function App() {
                 <div className="character-select">
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(10);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(10, 'playing')}
                     >
                         10 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(20);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(20, 'playing')}
                     >
                         20 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(30);
-                            setGameState('playing');
-                        }}
+                        onClick={() => startNewGame(30, 'playing')}
                     >
                         30 Questions
                     </button>
@@ -243,28 +252,19 @@ function App() {
                 <div className="character-select">
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(5);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(5, 'review')}
                     >
                         5 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(10);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(10, 'review')}
                     >
                         10 Questions
                     </button>
                     <button 
                         className="button"
-                        onClick={() => {
-                            setQuestionCount(20);
-                            setGameState('review');
-                        }}
+                        onClick={() => startNewGame(20, 'review')}
                     >
                         20 Questions
                     </button>
@@ -336,12 +336,9 @@ function App() {
         }
 
         const currentQuestion = questions[currentQuestionIndex];
-        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
         return (
             <div className="retro-window">
-                {renderProgress()}
-
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
@@ -381,48 +378,71 @@ function App() {
     };
 
     const renderFinished = () => {
-        const messages = {
-            quiz: [
-                { threshold: 90, text: "LEGENDARY! You're a reading warrior!" },
-                { threshold: 70, text: "AWESOME JOB! You're on your way to becoming a master!" },
-                { threshold: 50, text: "WELL DONE! Keep reading and practicing!" },
-                { threshold: 0, text: "GOOD TRY! Every question makes you stronger!" }
-            ],
-            review: [
+        // Content Review finish screen - no scoring
+        if (gameState === 'review') {
+            const messages = [
                 "Great job reviewing the content!",
                 "Keep reading and learning!",
                 "You're becoming a better reader every day!"
-            ]
-        };
-
-        let content;
-        if (gameState === 'review') {
-            const randomMessage = messages.review[Math.floor(Math.random() * messages.review.length)];
-            content = (
+            ];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            return (
                 <>
                     <h2 className="title">{randomMessage}</h2>
-                    <p className="subtitle">You've reviewed all the questions!</p>
-                </>
-            );
-        } else {
-            const percentage = (score / questionCount) * 100;
-            const message = messages.quiz.find(m => percentage >= m.threshold).text;
-            content = (
-                <>
-                    <h2 className="title">{message}</h2>
-                    <p className="subtitle">Final Score: {score} / {questionCount}</p>
+                    <div className="character-select">
+                        <button 
+                            className="button" 
+                            onClick={() => {
+                                resetGameState();
+                                setGameState('mode');
+                            }}
+                        >
+                            Try Another Challenge
+                        </button>
+                        <button 
+                            className="button" 
+                            onClick={() => {
+                                resetGameState();
+                                setGameState('title');
+                            }}
+                        >
+                            Back to Start
+                        </button>
+                    </div>
                 </>
             );
         }
+        
+        // Quiz finish screen with scoring
+        const percentage = (score / questionCount) * 100;
+        let message = '';
+        if (percentage >= 90) message = "LEGENDARY! You're a reading warrior!";
+        else if (percentage >= 70) message = "AWESOME JOB! You're on your way to becoming a master!";
+        else if (percentage >= 50) message = "WELL DONE! Keep reading and practicing!";
+        else message = "GOOD TRY! Every question makes you stronger!";
 
         return (
             <>
-                {content}
+                <h2 className="title">{message}</h2>
+                <p className="subtitle">Final Score: {score} / {questionCount}</p>
                 <div className="character-select">
-                    <button className="button" onClick={() => setGameState('mode')}>
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('mode');
+                        }}
+                    >
                         Try Another Challenge
                     </button>
-                    <button className="button" onClick={() => setGameState('title')}>
+                    <button 
+                        className="button" 
+                        onClick={() => {
+                            resetGameState();
+                            setGameState('title');
+                        }}
+                    >
                         Back to Start
                     </button>
                 </div>
@@ -454,6 +474,6 @@ function App() {
             {renderContent()}
         </div>
     );
-}
+};
 
 ReactDOM.render(<App />, document.getElementById('root'));
