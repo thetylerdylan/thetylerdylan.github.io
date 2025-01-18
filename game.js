@@ -1,3 +1,5 @@
+import { playMusic, playSound, stopAllMusic } from './audio.js';
+
 const TEAM_MEMBERS = {
     'Wise Eyes': ['Aesop', 'Lara', 'Ronan', 'Quincy'],
     'BOBOs': ['Archer', 'Matthew', 'Jordynn', 'Seth', 'Matilda']
@@ -56,6 +58,8 @@ const App = () => {
         resetGameState();
         setQuestionCount(count);
         setGameState(mode);
+        playSound('button');
+        playMusic(mode === 'playing' ? 'quiz' : 'review');
     };
 
     const loadQuestions = async () => {
@@ -172,19 +176,32 @@ const App = () => {
         </div>
     );
 
-    const renderTitle = () => (
-        <>
-            <div className="title">
-                <span className="title-word title-small">OREGON</span>
-                <span className="title-word">BATTLE</span>
-                <span className="title-word title-small">of the</span>
-                <span className="title-word">BOOKS</span>
-            </div>
-            <button className="button" onClick={() => setGameState('team')}>
-                START YOUR QUEST
-            </button>
-        </>
-    );
+    const renderTitle = () => {
+        React.useEffect(() => {
+            playMusic('title');
+        }, []);
+    
+        return (
+            <>
+                <div className="title">
+                    <span className="title-word title-small">OREGON</span>
+                    <span className="title-word">BATTLE</span>
+                    <span className="title-word title-small">of the</span>
+                    <span className="title-word">BOOKS</span>
+                </div>
+                <button 
+                    className="button" 
+                    onClick={() => {
+                        playSound('button');
+                        setGameState('team');
+                        playMusic('options');
+                    }}
+                >
+                    START YOUR QUEST
+                </button>
+            </>
+        );
+    };
 
     const renderTeamSelect = () => (
         <>
@@ -194,7 +211,10 @@ const App = () => {
                     <div 
                         key={teamName}
                         className={`team-card ${team === teamName ? 'selected' : ''}`}
-                        onClick={() => setTeam(teamName)}
+                        onClick={() => {
+                            playSound('button');
+                            setTeam(teamName);
+                        }}
                     >
                         <h3>{teamName}</h3>
                         <p>{TEAM_MEMBERS[teamName].join(', ')}</p>
@@ -209,7 +229,10 @@ const App = () => {
                             <button 
                                 key={memberName}
                                 className={`character-button ${character === memberName ? 'selected' : ''}`}
-                                onClick={() => setCharacter(memberName)}
+                                onClick={() => {
+                                    playSound('button');
+                                    setCharacter(memberName);
+                                }}
                             >
                                 {memberName}
                             </button>
@@ -220,7 +243,10 @@ const App = () => {
             {character && (
                 <button 
                     className="button" 
-                    onClick={() => setGameState('mode')}
+                    onClick={() => {
+                        playSound('button');
+                        setGameState('mode');
+                    }}
                 >
                     BEGIN QUEST
                 </button>
@@ -352,43 +378,60 @@ const App = () => {
                 <h3 className="subtitle">Question {currentQuestionIndex + 1} of {questions.length}</h3>
                 <p>{currentQuestion.question}</p>
                 
-                {!answered ? (
-                    <div className="center-button">
-                        <button 
-                            className="button"
-                            onClick={() => setAnswered(true)}
-                        >
-                            Reveal Answer
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="answer-text">
-                            {currentQuestion.answer}
-                        </div>
+                    {!answered ? (
                         <div className="center-button">
                             <button 
                                 className="button"
                                 onClick={() => {
-                                    if (currentQuestionIndex < questions.length - 1) {
-                                        setCurrentQuestionIndex(i => i + 1);
-                                        setAnswered(false);
-                                    } else {
-                                        setGameState('finished');
-                                    }
+                                    playSound('button');
+                                    setAnswered(true);
                                 }}
                             >
-                                Next Question
+                                Reveal Answer
                             </button>
                         </div>
-                    </>
-                )}
+                    ) : (
+                        <>
+                            <div className="answer-text">
+                                {currentQuestion.answer}
+                            </div>
+                            <div className="center-button">
+                                <button 
+                                    className="button"
+                                    onClick={() => {
+                                        playSound('button');
+                                        if (currentQuestionIndex < questions.length - 1) {
+                                            setCurrentQuestionIndex(i => i + 1);
+                                            setAnswered(false);
+                                        } else {
+                                            setGameState('finished');
+                                        }
+                                    }}
+                                >
+                                    Next Question
+                                </button>
+                            </div>
+                        </>
+                    )}
             </div>
         );
     };
 
     const renderFinished = () => {
-        // Content Review finish screen - no scoring
+        React.useEffect(() => {
+            if (gameState === 'review') {
+                playSound('win');
+            } else {
+                const percentage = (score / questionCount) * 100;
+                if (percentage >= 70) {
+                    playSound('win');
+                } else {
+                    playSound('lose');
+                }
+            }
+            playMusic('options');
+        }, []);
+    
         if (gameState === 'review') {
             const messages = [
                 "Great job reviewing the content!",
@@ -404,6 +447,7 @@ const App = () => {
                         <button 
                             className="button" 
                             onClick={() => {
+                                playSound('button');
                                 resetGameState();
                                 setGameState('mode');
                             }}
@@ -413,6 +457,7 @@ const App = () => {
                         <button 
                             className="button" 
                             onClick={() => {
+                                playSound('button');
                                 resetGameState();
                                 setGameState('title');
                             }}
