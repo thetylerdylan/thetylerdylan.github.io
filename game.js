@@ -42,6 +42,39 @@ const App = () => {
         return () => clearInterval(timer);
     }, [gameState, timeLeft, answered]);
 
+    React.useEffect(() => {
+        // Start with title music
+        playMusic('title');
+
+        // Cleanup function to stop all music when component unmounts
+        return () => {
+            stopAllMusic();
+        };
+    }, []);  // Empty dependency array means this runs once on mount
+
+    React.useEffect(() => {
+        switch(gameState) {
+            case 'title':
+                playMusic('title');
+                break;
+            case 'team':
+            case 'mode':
+                playMusic('options');
+                break;
+            case 'playing':
+                playMusic('quiz');
+                break;
+            case 'review':
+                playMusic('review');
+                break;
+            case 'finished':
+                playMusic('options');
+                break;
+            default:
+                break;
+        }
+    }, [gameState]);
+
     const resetGameState = () => {
         setQuestions([]);
         setCurrentQuestionIndex(0);
@@ -180,32 +213,26 @@ const App = () => {
         </div>
     );
 
-    const renderTitle = () => {
-        React.useEffect(() => {
-            playMusic('title');
-        }, []);
-    
-        return (
-            <>
-                <div className="title">
-                    <span className="title-word title-small">OREGON</span>
-                    <span className="title-word">BATTLE</span>
-                    <span className="title-word title-small">of the</span>
-                    <span className="title-word">BOOKS</span>
-                </div>
-                <button 
-                    className="button" 
-                    onClick={() => {
-                        playSound('button');
-                        setGameState('team');
-                        playMusic('options');
-                    }}
-                >
-                    START YOUR QUEST
-                </button>
-            </>
-        );
-    };
+    const renderTitle = () => (
+        <>
+            <div className="title">
+                <span className="title-word title-small">OREGON</span>
+                <span className="title-word">BATTLE</span>
+                <span className="title-word title-small">of the</span>
+                <span className="title-word">BOOKS</span>
+            </div>
+            <button 
+                className="button" 
+                onClick={() => {
+                    playSound('button');
+                    setGameState('team');
+                    playMusic('options');
+                }}
+            >
+                START YOUR QUEST
+            </button>
+        </>
+    );
 
     const renderTeamSelect = () => (
         <>
