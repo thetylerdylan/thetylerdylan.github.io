@@ -35,67 +35,152 @@
 <body>
     <div id="root"></div>
 
-    <!-- Initialize Audio Manager -->
 <!-- Initialize Audio Manager -->
-    <script>
-        // Audio Configuration
-        const createAudio = (src) => {
-            const audio = new Audio();
-            audio.preload = 'auto';
-            audio.src = src;
-            return audio;
-        };
+        <script>
+            // Audio Configuration with format fallbacks
+            const createAudio = (src) => {
+                const audio = new Audio();
+                audio.preload = 'auto';
+                
+                // Remove file extension and try multiple formats
+                const baseSrc = src.replace(/\.[^/.]+$/, '');
+                
+                // Try to load the audio, falling back through formats
+                const tryLoad = async () => {
+                    const formats = ['.mp3', '.wav', '.ogg'];
+                    for (const format of formats) {
+                        try {
+                            audio.src = baseSrc + format;
+                            await audio.play();
+                            audio.pause();
+                            audio.currentTime = 0;
+                            return true;
+                        } catch (e) {
+                            console.warn(`Failed to load ${format} format:`, e);
+                            continue;
+                        }
+                    }
+                    return false;
+                };
 
-        const MUSIC = {
-            title: createAudio('rpgchip01.mp3'),
-            options: createAudio('rpgchip06.mp3'),
-            quiz: createAudio('rpgchip08.mp3'),
-            review: createAudio('rpgchip10.mp3')
-        };
-
-        const SFX = {
-            win: createAudio('win.mp3'),
-            lose: createAudio('lose.mp3'),
-            button: createAudio('button.mp3')
-        };
-
-        // Configure all music tracks to loop
-        Object.values(MUSIC).forEach(track => {
-            track.loop = true;
-        });
-
-        // Create global AudioManager with improved error handling
-        window.AudioManager = {
-            stopAllMusic: function() {
-                Object.values(MUSIC).forEach(track => {
-                    track.pause();
-                    track.currentTime = 0;
+                // Initial format check
+                tryLoad().then(success => {
+                    if (!success) {
+                        console.warn(`Could not load audio: ${src}`);
+                    }
                 });
-            },
 
-            playMusic: function(trackName) {
-                this.stopAllMusic();
-                if (MUSIC[trackName]) {
-                    MUSIC[trackName].play()
-                        .catch(e => {
-                            console.warn('Audio playback failed:', e);
-                            // Initialize audio on next user interaction
-                            document.addEventListener('click', () => {
-                                MUSIC[trackName].play().catch(() => {});
-                            }, { once: true });
+                return audio;
+            };
+
+            let currentMusic = null;
+            let audioInitialized = false;
+            let audioContext = null;
+
+            // Create the audio elements
+            const MUSIC = {
+                title: createAudio('rpgchip01'),
+                options: createAudio('rpgchip06'),
+                quiz: createAudio('rpgchip08'),
+                review: createAudio('rpgchip10')
+            };
+
+            const SFX = {
+                win: createAudio('win'),
+                lose: createAudio('lose'),
+                button: createAudio('button')
+            };
+
+            // Configure all music tracks to loop
+            Object.values(MUSIC).forEach(track => {
+                track.loop = true;
+            });
+
+            // Create global AudioManager with improved error handling
+            window.AudioManager = {
+                init: async function() {
+                    if (audioInitialized) return;
+                    
+                    try {
+                        // Create AudioContext for better mobile support
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        await audioContext.resume();
+                        
+                        // Pre-load all audio
+                        const loadPromises = [
+                            ...Object.values(MUSIC),
+                            ...Object.values(SFX)
+                        ].map(audio => {
+                            return new Promise((resolve) => {
+                                audio.load();
+                                resolve();
+                            });
                         });
-                }
-            },
 
-            playSound: function(soundName) {
-                if (SFX[soundName]) {
-                    SFX[soundName].currentTime = 0;
-                    SFX[soundName].play()
-                        .catch(e => console.warn('Sound playback failed:', e));
+                        await Promise.all(loadPromises);
+                        audioInitialized = true;
+                        console.log('Audio system initialized');
+                    } catch (e) {
+                        console.warn('Audio initialization failed:', e);
+                    }
+                },
+
+                stopAllMusic: function() {
+                    if (currentMusic) {
+                        currentMusic.pause();
+                        currentMusic.currentTime = 0;
+                    }
+                    currentMusic = null;
+                },
+
+                playMusic: async function(trackName) {
+                    if (!audioInitialized) {
+                        await this.init();
+                    }
+
+                    const track = MUSIC[trackName];
+                    if (!track) return;
+
+                    try {
+                        this.stopAllMusic();
+                        track.currentTime = 0;
+                        await track.play();
+                        currentMusic = track;
+                    } catch (e) {
+                        console.warn(`Failed to play music ${trackName}:`, e);
+                        // Try to re-initialize on failure
+                        audioInitialized = false;
+                        this.init();
+                    }
+                },
+
+                playSound: async function(soundName) {
+                    if (!audioInitialized) {
+                        await this.init();
+                    }
+
+                    const sound = SFX[soundName];
+                    if (!sound) return;
+
+                    try {
+                        sound.currentTime = 0;
+                        await sound.play();
+                    } catch (e) {
+                        console.warn(`Failed to play sound ${soundName}:`, e);
+                    }
                 }
-            }
-        };
-    </script>
+            };
+
+            // Initialize audio on user interaction
+            const initAudioOnInteraction = async () => {
+                await window.AudioManager.init();
+                document.removeEventListener('click', initAudioOnInteraction);
+                document.removeEventListener('touchstart', initAudioOnInteraction);
+            };
+
+            document.addEventListener('click', initAudioOnInteraction);
+            document.addEventListener('touchstart', initAudioOnInteraction);
+        </script>
 
     <!-- Game Logic -->
     <script type="text/babel">
@@ -716,7 +801,7 @@
                     {renderContent()}
                 </div>
             );
-        };
+        }; // End of App component
 
         // Render the app
         ReactDOM.render(<App />, document.getElementById('root'));
