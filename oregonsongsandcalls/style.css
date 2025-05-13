@@ -1,0 +1,686 @@
+/* Oregon Bird Song Challenge - Main Stylesheet */
+
+/* ===== BASE STYLES ===== */
+:root {
+  /* Color Palette - Oregon Landscape Inspired */
+  --forest-green-dark: #1a472a;
+  --forest-green: #2a603b;
+  --forest-green-light: #5b9279;
+  --sky-blue: #6da6c0;
+  --sky-blue-light: #b9d6f2;
+  --earth-brown: #8d6346;
+  --earth-tan: #d4b483;
+  --stone-gray: #a5a58d;
+  --white: #f5f5f5;
+  --black: #1e1e1e;
+  
+  /* Functional Colors */
+  --primary: var(--forest-green);
+  --secondary: var(--sky-blue);
+  --accent: var(--earth-tan);
+  --background: var(--white);
+  --text: var(--black);
+  --text-light: var(--white);
+  --correct: #4caf50;
+  --incorrect: #f44336;
+  
+  /* Typography */
+  --font-primary: 'Poppins', sans-serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2.5rem;
+  
+  /* Borders & Shadows */
+  --border-radius: 12px;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-primary);
+  color: var(--text);
+  background-color: var(--background);
+  line-height: 1.6;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+/* ===== LAYOUT ===== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  width: 100%;
+  padding: var(--spacing-xl) 0;
+}
+
+.screen.active {
+  display: block;
+  animation: fadeIn var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== BUTTONS & INTERACTIVE ELEMENTS ===== */
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: var(--font-primary);
+  font-weight: 500;
+  border-radius: var(--border-radius);
+  transition: all var(--transition-fast);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.category-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xl) 0;
+}
+
+.category-btn {
+  background-color: var(--primary);
+  color: var(--text-light);
+  font-size: 1.2rem;
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-btn:hover {
+  background-color: var(--forest-green-dark);
+}
+
+.category-btn i {
+  font-size: 1.5rem;
+}
+
+.additional-options {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.option-btn {
+  background-color: var(--secondary);
+  color: var(--text-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.option-btn:hover {
+  background-color: var(--sky-blue-light);
+  color: var(--text);
+}
+
+.audio-btn {
+  background-color: var(--primary);
+  color: var(--text-light);
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.audio-btn:hover {
+  background-color: var(--forest-green-dark);
+}
+
+.end-btn {
+  background-color: var(--secondary);
+  color: var(--text-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin: var(--spacing-sm);
+}
+
+.save-btn {
+  background-color: var(--primary);
+  color: var(--text-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.reset-btn {
+  background-color: var(--stone-gray);
+  color: var(--text-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.bird-option {
+  background-color: var(--sky-blue-light);
+  color: var(--text);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.bird-option:hover {
+  background-color: var(--sky-blue);
+  transform: translateX(5px);
+}
+
+.bird-option.correct {
+  background-color: var(--correct);
+  color: var(--text-light);
+}
+
+.bird-option.incorrect {
+  background-color: var(--incorrect);
+  color: var(--text-light);
+}
+
+.close-btn {
+  background: none;
+  font-size: 1.8rem;
+  color: var(--text);
+}
+
+.guide-btn {
+  background-color: var(--secondary);
+  color: var(--text-light);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.difficulty-btn {
+  background-color: var(--stone-gray);
+  color: var(--text-light);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.difficulty-btn.active {
+  background-color: var(--primary);
+}
+
+/* ===== TITLE SCREEN ===== */
+#title-screen {
+  background: linear-gradient(135deg, var(--forest-green-light) 0%, var(--forest-green) 100%);
+  color: var(--text-light);
+  text-align: center;
+}
+
+.app-title {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 1px;
+}
+
+.app-tagline {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* ===== READY SCREEN ===== */
+#ready-screen {
+  background-color: var(--secondary);
+  color: var(--text-light);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown {
+  font-size: 6rem;
+  font-weight: 700;
+  margin: var(--spacing-xl) 0;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ===== GAME SCREEN ===== */
+#game-screen {
+  background-color: var(--background);
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--sky-blue-light);
+}
+
+.progress, .timer, .score {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xl) 0;
+}
+
+.sound-wave {
+  height: 100px;
+  width: 100%;
+  background-color: var(--sky-blue-light);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  position: relative;
+}
+
+.replays-left {
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+}
+
+.options-container {
+  margin-top: var(--spacing-xl);
+}
+
+/* ===== END SCREEN ===== */
+#end-screen {
+  background-color: var(--background);
+  text-align: center;
+}
+
+.stats-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) auto;
+  max-width: 500px;
+  text-align: left;
+}
+
+.stats-header {
+  border-bottom: 2px solid var(--forest-green-light);
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.stats-body {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--stone-gray);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.bird-results {
+  margin-top: var(--spacing-lg);
+}
+
+.bird-result {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--sky-blue-light);
+}
+
+.bird-result:last-child {
+  border-bottom: none;
+}
+
+.bird-result.correct {
+  color: var(--correct);
+}
+
+.bird-result.incorrect {
+  color: var(--incorrect);
+}
+
+.end-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+/* ===== BIRD GUIDE SCREEN ===== */
+#guide-screen {
+  background-color: var(--background);
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--forest-green-light);
+}
+
+.guide-controls {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+#guide-category-filter {
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--stone-gray);
+  font-family: var(--font-primary);
+}
+
+.birds-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.bird-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+}
+
+.bird-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.bird-info {
+  padding: var(--spacing-md);
+}
+
+.bird-name {
+  margin-bottom: var(--spacing-xs);
+}
+
+.bird-scientific {
+  font-style: italic;
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.bird-description {
+  font-size: 0.95rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.bird-audio {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+  animation: fadeIn var(--transition-normal);
+}
+
+.modal-content {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--stone-gray);
+}
+
+.modal-body {
+  padding: var(--spacing-lg);
+}
+
+.modal-footer {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--stone-gray);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+.setting-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.setting-group:last-child {
+  margin-bottom: 0;
+}
+
+.setting-group h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--primary);
+}
+
+.game-options, .accessibility-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.difficulty-options {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.helper-text {
+  font-size: 0.8rem;
+  color: var(--stone-gray);
+  margin-left: var(--spacing-sm);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slideIn var(--transition-normal);
+}
+
+/* Sound Wave Animation */
+@keyframes soundWave {
+  0% { height: 10%; }
+  50% { height: 80%; }
+  100% { height: 10%; }
+}
+
+.sound-wave.active .bar {
+  animation: soundWave 0.5s infinite;
+}
+
+/* ===== ACCESSIBILITY ===== */
+.high-contrast {
+  --primary: #006400;
+  --secondary: #000080;
+  --background: #ffffff;
+  --text: #000000;
+  --text-light: #ffffff;
+  --correct: #008000;
+  --incorrect: #cc0000;
+  --sky-blue-light: #add8e6;
+  --stone-gray: #808080;
+}
+
+.large-text {
+  font-size: 1.2rem;
+}
+
+.large-text h1 {
+  font-size: 3rem;
+}
+
+.large-text h2 {
+  font-size: 2.4rem;
+}
+
+.large-text h3 {
+  font-size: 1.8rem;
+}
+
+/* ===== MEDIA QUERIES ===== */
+@media (min-width: 768px) {
+  .category-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .category-btn {
+    width: 30%;
+  }
+  
+  .stats-card {
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 767px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.7rem;
+  }
+  
+  .game-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+  }
+  
+  .guide-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .guide-controls {
+    width: 100%;
+  }
+  
+  #guide-category-filter {
+    flex-grow: 1;
+  }
+}
