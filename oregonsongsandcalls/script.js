@@ -82,10 +82,34 @@ const largeTextCheckbox = document.getElementById('large-text');
 const saveSettingsBtn = document.getElementById('save-settings');
 const resetSettingsBtn = document.getElementById('reset-settings');
 
-// ===== INITIALIZATION =====
+// Add toggleTheme function
+function toggleTheme() {
+    const body = document.body;
+    const themeToggle = document.getElementById('theme-toggle');
+    const icon = themeToggle.querySelector('i');
+    
+    // Toggle cool theme class
+    body.classList.toggle('cool-theme');
+    
+    // Update icon
+    if (body.classList.contains('cool-theme')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+        localStorage.setItem('theme', 'cool');
+    } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Add theme loading on init
 function init() {
     // Load saved settings from local storage
     loadSettings();
+    
+    // Load saved theme
+    loadTheme();
     
     // Initialize Web Audio API
     initAudio();
@@ -97,7 +121,25 @@ function init() {
     applyAccessibilitySettings();
 }
 
+// Add theme loading function
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const body = document.body;
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('i');
+        
+        if (savedTheme === 'cool') {
+            body.classList.add('cool-theme');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+    }
+}
+
 // ===== EVENT LISTENERS =====
+// Add theme toggling functionality
 function addEventListeners() {
     // Title Screen
     categoryButtons.forEach(button => {
@@ -127,17 +169,34 @@ function addEventListeners() {
     });
     saveSettingsBtn.addEventListener('click', saveSettings);
     resetSettingsBtn.addEventListener('click', resetSettings);
+    
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
 }
 
 // ===== AUDIO FUNCTIONS =====
 function initAudio() {
     try {
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        gameState.audioContext = new AudioContext();
+        // Create audio context on user interaction to comply with autoplay policies
+        const createAudioContext = () => {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            gameState.audioContext = new AudioContext();
+            
+            // Create analyzer for sound visualization
+            gameState.audioAnalyser = gameState.audioContext.createAnalyser();
+            gameState.audioAnalyser.fftSize = 256;
+            
+            // Remove event listeners once context is created
+            document.removeEventListener('click', createAudioContext);
+            document.removeEventListener('touchstart', createAudioContext);
+        };
         
-        // Create analyzer for sound visualization
-        gameState.audioAnalyser = gameState.audioContext.createAnalyser();
-        gameState.audioAnalyser.fftSize = 256;
+        // Add event listeners to create context on user interaction
+        document.addEventListener('click', createAudioContext);
+        document.addEventListener('touchstart', createAudioContext);
     } catch (e) {
         console.error('Web Audio API is not supported in this browser', e);
         alert('Sorry, your browser does not support the Web Audio API needed for this game.');
@@ -146,22 +205,36 @@ function initAudio() {
 
 function loadBirdCall(url) {
     return new Promise((resolve, reject) => {
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to load audio from ${url}: ${response.status} ${response.statusText}`);
-                }
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => gameState.audioContext.decodeAudioData(arrayBuffer))
-            .then(audioBuffer => {
-                gameState.audioBuffer = audioBuffer;
-                resolve();
-            })
-            .catch(error => {
-                console.error('Error loading bird call:', error);
-                reject(error);
-            });
+        // Create audio element to handle the loading instead of fetch
+        const audio = new Audio();
+        audio.crossOrigin = "anonymous";
+        
+        // Add event listeners
+        audio.addEventListener('canplaythrough', () => {
+            // Once loaded, create a buffer from the audio element
+            const audioContext = gameState.audioContext;
+            const source = audioContext.createMediaElementSource(audio);
+            
+            // Connect to destination temporarily to create a buffer
+            source.connect(audioContext.destination);
+            
+            // Store the audio element and source
+            gameState.audioElement = audio;
+            gameState.audioSource = source;
+            
+            // Resolve the promise
+            resolve();
+        }, { once: true });
+        
+        audio.addEventListener('error', (error) => {
+            console.error('Error loading bird call:', error);
+            console.error('URL that failed:', url);
+            reject(new Error(`Failed to load audio: ${error.message}`));
+        });
+        
+        // Set the source and start loading
+        audio.src = url;
+        audio.load();
     });
 }
 
@@ -176,7 +249,7 @@ function playBirdCall() {
         return;
     }
     
-    if (!gameState.audioBuffer) {
+    if (!gameState.audioElement) {
         alert('Audio not loaded yet. Please wait.');
         return;
     }
@@ -187,21 +260,21 @@ function playBirdCall() {
         replaysCountEl.textContent = gameState.replaysLeft;
     }
     
-    // Create and connect audio source
-    gameState.audioSource = gameState.audioContext.createBufferSource();
-    gameState.audioSource.buffer = gameState.audioBuffer;
-    
     // Set volume
-    const gainNode = gameState.audioContext.createGain();
-    gainNode.gain.value = gameState.settings.volume / 100;
+    gameState.audioElement.volume = gameState.settings.volume / 100;
     
-    // Connect nodes
-    gameState.audioSource.connect(gameState.audioAnalyser);
-    gameState.audioAnalyser.connect(gainNode);
-    gainNode.connect(gameState.audioContext.destination);
+    // Connect nodes if needed
+    if (gameState.audioSource) {
+        // Disconnect from destination (we connected it during loading)
+        gameState.audioSource.disconnect();
+        
+        // Connect to analyzer
+        gameState.audioSource.connect(gameState.audioAnalyser);
+        gameState.audioAnalyser.connect(gameState.audioContext.destination);
+    }
     
     // Play audio
-    gameState.audioSource.start(0);
+    gameState.audioElement.play();
     gameState.audioPlaying = true;
     
     // Update UI
@@ -211,7 +284,7 @@ function playBirdCall() {
     startVisualization();
     
     // Add ended event
-    gameState.audioSource.onended = () => {
+    gameState.audioElement.onended = () => {
         stopBirdCall();
     };
 }
@@ -220,9 +293,14 @@ function stopBirdCall() {
     if (!gameState.audioPlaying) return;
     
     try {
-        gameState.audioSource.stop();
+        // Pause the audio element
+        if (gameState.audioElement) {
+            gameState.audioElement.pause();
+            // Reset to beginning for next play
+            gameState.audioElement.currentTime = 0;
+        }
     } catch (e) {
-        console.warn('Error stopping audio source:', e);
+        console.warn('Error stopping audio element:', e);
     }
     
     gameState.audioPlaying = false;
@@ -579,7 +657,13 @@ function generateBirdGallery(category = 'all') {
                 <div class="bird-scientific">${bird.scientificName}</div>
                 <div class="bird-category">${bird.category.join(', ')}</div>
                 <p class="bird-description">${bird.description}</p>
-                <audio class="bird-audio" controls src="${bird.soundUrl}"></audio>
+                <audio class="bird-audio" controls preload="none">
+                    <source src="${bird.soundUrl}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="fallback-audio">
+                    <a href="${bird.soundUrl}" target="_blank">Listen on Xeno-Canto</a>
+                </div>
             </div>
         `;
         
