@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oregon Bird Song Challenge</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Title Screen -->
+    <section id="title-screen" class="screen active">
+        <div class="container">
+            <h1 class="app-title">Oregon Bird Song Challenge</h1>
+            <p class="app-tagline">Test your knowledge of Western Oregon's avian residents</p>
+            
+            <div class="category-buttons">
+                <button class="category-btn" data-category="Common Backyard Birds">
+                    <i class="fas fa-home"></i>
+                    <span>Common Backyard Birds</span>
+                </button>
+                <button class="category-btn" data-category="Water & Wetland Birds">
+                    <i class="fas fa-water"></i>
+                    <span>Water & Wetland Birds</span>
+                </button>
+                <button class="category-btn" data-category="Forest & Mountain Birds">
+                    <i class="fas fa-tree"></i>
+                    <span>Forest & Mountain Birds</span>
+                </button>
+            </div>
+
+            <div class="additional-options">
+                <button id="bird-guide-btn" class="option-btn">Bird Guide</button>
+                <button id="settings-btn" class="option-btn">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ready Screen -->
+    <section id="ready-screen" class="screen">
+        <div class="container">
+            <h2 class="ready-title">Get Ready!</h2>
+            <p class="category-name">Category: <span id="selected-category"></span></p>
+            <div class="countdown">3</div>
+            <p class="ready-instructions">Listen carefully and select the correct bird.</p>
+        </div>
+    </section>
+
+    <!-- Game Screen -->
+    <section id="game-screen" class="screen">
+        <div class="container">
+            <div class="game-header">
+                <div class="progress">
+                    <span id="current-bird">Bird 1</span> of <span id="total-birds">10</span>
+                </div>
+                <div class="timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="time-elapsed">0</span>s
+                </div>
+                <div class="score">
+                    <i class="fas fa-star"></i>
+                    <span id="current-score">0</span>
+                </div>
+            </div>
+
+            <div class="audio-player">
+                <div class="sound-wave"></div>
+                <button id="play-btn" class="audio-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <div class="replays-left">
+                    <span id="replays-count">3</span> replays left
+                </div>
+            </div>
+
+            <div class="options-container">
+                <!-- Options will be generated dynamically by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- End Screen -->
+    <section id="end-screen" class="screen">
+        <div class="container">
+            <h2 class="end-title">Round Complete!</h2>
+            
+            <div class="stats-card">
+                <div class="stats-header">
+                    <h3>Oregon Bird Song Challenge</h3>
+                    <p id="end-category">Category: Common Backyard Birds</p>
+                    <p id="end-date">May 13, 2025</p>
+                </div>
+                <div class="stats-body">
+                    <div class="stat">
+                        <span class="stat-label">Score</span>
+                        <span id="end-score" class="stat-value">120</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Accuracy</span>
+                        <span id="end-accuracy" class="stat-value">80%</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Time</span>
+                        <span id="end-time" class="stat-value">01:45</span>
+                    </div>
+                </div>
+                <div class="bird-results">
+                    <!-- Results will be dynamically generated -->
+                </div>
+            </div>
+            
+            <div class="end-buttons">
+                <button id="play-again-btn" class="end-btn">Play Again</button>
+                <button id="new-category-btn" class="end-btn">New Category</button>
+                <button id="share-results-btn" class="end-btn">Share Results</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bird Guide Screen -->
+    <section id="guide-screen" class="screen">
+        <div class="container">
+            <div class="guide-header">
+                <h2>Oregon Bird Guide</h2>
+                <div class="guide-controls">
+                    <select id="guide-category-filter">
+                        <option value="all">All Categories</option>
+                        <option value="Common Backyard Birds">Common Backyard Birds</option>
+                        <option value="Water & Wetland Birds">Water & Wetland Birds</option>
+                        <option value="Forest & Mountain Birds">Forest & Mountain Birds</option>
+                    </select>
+                    <button id="guide-back-btn" class="guide-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Menu
+                    </button>
+                </div>
+            </div>
+            
+            <div class="birds-gallery">
+                <!-- Bird cards will be generated dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="close-settings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <h3>Volume</h3>
+                    <input type="range" id="volume-slider" min="0" max="100" value="80">
+                    <span id="volume-value">80%</span>
+                </div>
+                
+                <div class="setting-group">
+                    <h3>Difficulty</h3>
+                    <div class="difficulty-options">
+                        <button data-difficulty="easy" class="difficulty-btn active">Easy</button>
+                        <button data-difficulty="medium" class="difficulty-btn">Medium</button>
+                        <button data-difficulty="hard" class="difficulty-btn">Hard</button>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3>Game Options</h3>
+                    <div class="game-options">
+                        <div class="option">
+                            <label for="option-count">Answer Options:</label>
+                            <select id="option-count">
+                                <option value="3">3 options</option>
+                                <option value="5" selected>5 options</option>
+                                <option value="7">7 options</option>
+                            </select>
+                        </div>
+                        <div class="option">
+                            <label for="time-limit">Time Limit (seconds):</label>
+                            <input type="number" id="time-limit" min="0" max="60" value="0">
+                            <span class="helper-text">0 = No limit</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3>Accessibility</h3>
+                    <div class="accessibility-options">
+                        <div class="option">
+                            <input type="checkbox" id="high-contrast">
+                            <label for="high-contrast">High Contrast Mode</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="large-text">
+                            <label for="large-text">Large Text</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings" class="save-btn">Save Settings</button>
+                <button id="reset-settings" class="reset-btn">Reset to Default</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="birds.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
