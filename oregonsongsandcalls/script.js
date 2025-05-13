@@ -203,39 +203,97 @@ function initAudio() {
     }
 }
 
+// Also update the loadBirdCall function to use iframe approach
 function loadBirdCall(url) {
     return new Promise((resolve, reject) => {
-        // Create audio element to handle the loading instead of fetch
-        const audio = new Audio();
-        audio.crossOrigin = "anonymous";
+        // Extract Xeno-Canto ID 
+        const xcId = extractXenoCantoId(url);
         
-        // Add event listeners
-        audio.addEventListener('canplaythrough', () => {
-            // Once loaded, create a buffer from the audio element
-            const audioContext = gameState.audioContext;
-            const source = audioContext.createMediaElementSource(audio);
+        if (!xcId) {
+            showNotification('Could not extract audio ID from URL', 'error');
+            reject(new Error('Invalid audio URL format'));
+            return;
+        }
+        
+        // Clear previous audio content
+        gameState.xcPlayerId = xcId;
+        
+        // Show notification
+        showNotification('Loading bird call...', 'info');
+        
+        // Create iframe temporarily to load the audio
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '-9999px';
+        
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://xeno-canto.org/sounds/embed/${xcId}`;
+        iframe.width = '340';
+        iframe.height = '115';
+        iframe.frameBorder = '0';
+        iframe.scrolling = 'no';
+        
+        // Set a timeout in case the iframe doesn't load
+        const timeoutId = setTimeout(() => {
+            document.body.removeChild(tempContainer);
+            reject(new Error('Audio loading timed out'));
+        }, 10000);
+        
+        iframe.onload = () => {
+            clearTimeout(timeoutId);
+            document.body.removeChild(tempContainer);
             
-            // Connect to destination temporarily to create a buffer
-            source.connect(audioContext.destination);
-            
-            // Store the audio element and source
-            gameState.audioElement = audio;
-            gameState.audioSource = source;
-            
-            // Resolve the promise
+            // Mark as ready to play
+            gameState.audioReady = true;
+            showNotification('Bird call loaded! Click play to listen.', 'success');
             resolve();
-        }, { once: true });
+        };
         
-        audio.addEventListener('error', (error) => {
-            console.error('Error loading bird call:', error);
-            console.error('URL that failed:', url);
-            reject(new Error(`Failed to load audio: ${error.message}`));
-        });
+        iframe.onerror = () => {
+            clearTimeout(timeoutId);
+            document.body.removeChild(tempContainer);
+            reject(new Error('Failed to load audio'));
+        };
         
-        // Set the source and start loading
-        audio.src = url;
-        audio.load();
+        tempContainer.appendChild(iframe);
+        document.body.appendChild(tempContainer);
     });
+}
+
+// Add notification function to give better feedback
+function showNotification(message, type = 'info') {
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notification-text');
+    
+    if (!notification || !notificationText) return;
+    
+    // Set icon based on type
+    const icon = notification.querySelector('i');
+    if (icon) {
+        icon.className = type === 'error' ? 'fas fa-exclamation-circle' : 
+                         type === 'success' ? 'fas fa-check-circle' : 
+                         'fas fa-info-circle';
+    }
+    
+    // Set text
+    notificationText.textContent = message;
+    
+    // Add appropriate class
+    notification.className = 'notification';
+    if (type === 'error') {
+        notification.classList.add('error');
+    } else if (type === 'success') {
+        notification.classList.add('success');
+    }
+    
+    // Show notification
+    notification.classList.add('active');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('active');
+    }, 3000);
 }
 
 function playBirdCall() {
@@ -246,11 +304,12 @@ function playBirdCall() {
     
     if (gameState.replaysLeft <= 0 && gameState.currentBirdIndex > 0) {
         // Don't allow replay if no more replays left (except for first play)
+        showNotification('No replays left!', 'error');
         return;
     }
     
-    if (!gameState.audioElement) {
-        alert('Audio not loaded yet. Please wait.');
+    if (!gameState.audioReady) {
+        showNotification('Audio not loaded yet. Please wait.', 'info');
         return;
     }
     
@@ -260,33 +319,95 @@ function playBirdCall() {
         replaysCountEl.textContent = gameState.replaysLeft;
     }
     
-    // Set volume
-    gameState.audioElement.volume = gameState.settings.volume / 100;
+    // Create and embed the Xeno-Canto player iframe
+    const soundWave = document.querySelector('.sound-wave');
+    if (!soundWave) return;
     
-    // Connect nodes if needed
-    if (gameState.audioSource) {
-        // Disconnect from destination (we connected it during loading)
-        gameState.audioSource.disconnect();
-        
-        // Connect to analyzer
-        gameState.audioSource.connect(gameState.audioAnalyser);
-        gameState.audioAnalyser.connect(gameState.audioContext.destination);
-    }
+    // Clear previous content
+    soundWave.innerHTML = '';
     
-    // Play audio
-    gameState.audioElement.play();
+    // Add iframe
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://xeno-canto.org/sounds/embed/${gameState.xcPlayerId}`;
+    iframe.width = '100%';
+    iframe.height = '100%';
+    iframe.frameBorder = '0';
+    iframe.scrolling = 'no';
+    iframe.allow = 'autoplay';
+    iframe.className = 'xc-player-iframe';
+    
+    soundWave.appendChild(iframe);
+    
+    // Mark as playing
     gameState.audioPlaying = true;
     
     // Update UI
     playBtn.innerHTML = '<i class="fas fa-stop"></i>';
     
-    // Start visualization
-    startVisualization();
+    // Create fake visualization since we can't access the audio data directly
+    createFakeVisualization();
     
-    // Add ended event
-    gameState.audioElement.onended = () => {
+    // Auto-stop after 10 seconds
+    gameState.audioTimeout = setTimeout(() => {
         stopBirdCall();
-    };
+    }, 15000);
+}
+
+function stopBirdCall() {
+    if (!gameState.audioPlaying) return;
+    
+    // Clear the audio timeout
+    if (gameState.audioTimeout) {
+        clearTimeout(gameState.audioTimeout);
+        gameState.audioTimeout = null;
+    }
+    
+    // Get the sound wave container and clear it
+    const soundWave = document.querySelector('.sound-wave');
+    if (soundWave) {
+        soundWave.innerHTML = '';
+    }
+    
+    gameState.audioPlaying = false;
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    
+    // Stop visualization
+    stopVisualization();
+}
+
+// Create a fake visualization since we can't access audio data from iframe
+function createFakeVisualization() {
+    const soundWave = document.querySelector('.sound-wave');
+    if (!soundWave) return;
+    
+    // Add visualization bars in front of the iframe
+    const visualizer = document.createElement('div');
+    visualizer.className = 'fake-visualizer';
+    visualizer.style.position = 'absolute';
+    visualizer.style.top = '0';
+    visualizer.style.left = '0';
+    visualizer.style.width = '100%';
+    visualizer.style.height = '100%';
+    visualizer.style.pointerEvents = 'none';
+    visualizer.style.zIndex = '5';
+    visualizer.style.display = 'flex';
+    visualizer.style.alignItems = 'flex-end';
+    visualizer.style.justifyContent = 'space-around';
+    
+    // Add bars
+    const barCount = 30;
+    for (let i = 0; i < barCount; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = `${100 / barCount}%`;
+        bar.style.height = '10%';
+        bar.style.margin = '0 1px';
+        bar.style.animationDelay = `${i * 0.05}s`;
+        
+        visualizer.appendChild(bar);
+    }
+    
+    soundWave.appendChild(visualizer);
 }
 
 function stopBirdCall() {
@@ -649,6 +770,9 @@ function generateBirdGallery(category = 'all') {
     
     // Create bird cards
     birds.forEach(bird => {
+        // Extract Xeno-Canto ID from URL
+        const xcId = extractXenoCantoId(bird.soundUrl);
+        
         const birdCard = document.createElement('div');
         birdCard.className = 'bird-card';
         birdCard.innerHTML = `
@@ -657,18 +781,39 @@ function generateBirdGallery(category = 'all') {
                 <div class="bird-scientific">${bird.scientificName}</div>
                 <div class="bird-category">${bird.category.join(', ')}</div>
                 <p class="bird-description">${bird.description}</p>
-                <audio class="bird-audio" controls preload="none">
-                    <source src="${bird.soundUrl}" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-                <div class="fallback-audio">
-                    <a href="${bird.soundUrl}" target="_blank">Listen on Xeno-Canto</a>
+                
+                <div class="xc-player-container">
+                    <iframe class="audio-iframe" src="https://xeno-canto.org/sounds/embed/${xcId}" scrolling="no" frameborder="0"></iframe>
+                    <div class="audio-error-msg">
+                        <a href="${bird.soundUrl}" target="_blank">Listen on Xeno-Canto</a>
+                    </div>
                 </div>
             </div>
         `;
         
         birdsGallery.appendChild(birdCard);
     });
+}
+
+// Helper function to extract Xeno-Canto ID from URL
+function extractXenoCantoId(url) {
+    // Example URL: https://xeno-canto.org/sounds/uploaded/ZNCDXTUOFL/XC583183-191231_1248_EVGR.mp3
+    // Extract the XC ID pattern like "XC583183"
+    const match = url.match(/XC\d+/i);
+    
+    if (match) {
+        return match[0];
+    }
+    
+    // Alternative extraction method if the first one fails
+    const segments = url.split('/');
+    for (const segment of segments) {
+        if (segment.includes('XC')) {
+            return segment.split('-')[0];
+        }
+    }
+    
+    return '';
 }
 
 function filterBirdGuide() {
